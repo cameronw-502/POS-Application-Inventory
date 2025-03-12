@@ -1,5 +1,3 @@
-import "./bootstrap";
-
 // Simple JavaScript initialization
 document.addEventListener("DOMContentLoaded", () => {
     console.log("Application initialized");
