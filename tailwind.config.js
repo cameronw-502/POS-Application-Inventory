@@ -4,26 +4,29 @@ export default {
         "./resources/**/*.blade.php",
         "./resources/**/*.js",
         "./resources/**/*.vue",
+        "./vendor/livewire/flux/dist/**/*.js",
+        "./vendor/livewire/flux/src/View/Components/**/*.php",
     ],
     theme: {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: "#4f46e5", // Adjust this to your primary color
-                    50: "#f5f3ff",
-                    100: "#ede9fe",
-                    200: "#ddd6fe",
-                    300: "#c4b5fd",
-                    400: "#a78bfa",
-                    500: "#8b5cf6",
-                    600: "#7c3aed",
-                    700: "#6d28d9",
-                    800: "#5b21b6",
-                    900: "#4c1d95",
+                    DEFAULT: "#3b82f6", // Blue-500 as fallback
+                    50: "#f0f9ff",
+                    100: "#e0f2fe",
+                    200: "#bae6fd",
+                    300: "#7dd3fc",
+                    400: "#38bdf8",
+                    500: "#0ea5e9",
+                    600: "#0284c7",
+                    700: "#0369a1",
+                    800: "#075985",
+                    900: "#0c4a6e",
+                    950: "#082f49",
                     foreground: "#ffffff",
                 },
                 accent: {
-                    DEFAULT: "#0ea5e9", // Adjust this to your accent color
+                    DEFAULT: "#6366f1", // Indigo-500
                     foreground: "#ffffff",
                 },
             },
