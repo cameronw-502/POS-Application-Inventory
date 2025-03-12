@@ -11,10 +11,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Replace dashboard with admin
-Route::view('admin', 'admin')
-    ->middleware(['auth', 'verified'])
-    ->name('admin');
+// Remove the admin route
+// Route::view('admin', 'admin')
+//    ->middleware(['auth', 'verified'])
+//    ->name('admin');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
