@@ -1,10 +1,7 @@
 import "./bootstrap";
-import React from "react";
-import { createRoot } from "react-dom/client";
-import PosApp from "./components/Pos/PosApp";
 
-const container = document.getElementById("pos-root");
-if (container) {
-    const root = createRoot(container);
-    root.render(<PosApp />);
-}
+// Simple JavaScript initialization
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("Application initialized");
+    // Add your vanilla JS code here
+});
