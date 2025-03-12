@@ -1,0 +1,22 @@
+models:
+  Category:
+    name: string
+    slug: string:unique
+    description: text nullable
+    relationships:
+      hasMany: Product
+
+  Product:
+    name: string
+    slug: string:unique
+    description: text nullable
+    price: decimal:10,2
+    stock_quantity: integer default:0
+    sku: string:unique
+    status: string default:'draft'
+    category_id: id foreign
+    relationships:
+      belongsTo: Category
+    traits:
+      - HasMedia
+      - HasSlug

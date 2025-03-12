@@ -1,0 +1,10 @@
+created:
+    - database/factories/CategoryFactory.php
+    - database/factories/ProductFactory.php
+    - database/migrations/2025_03_08_184300_create_categories_table.php
+    - database/migrations/2025_03_08_184301_create_products_table.php
+    - app/Models/Category.php
+    - app/Models/Product.php
+models:
+    Category: { name: string, slug: 'string:unique', description: 'text nullable', relationships: { hasMany: Product } }
+    Product: { name: string, slug: 'string:unique', description: 'text nullable', price: 'decimal:10,2', stock_quantity: 'integer default:0', sku: 'string:unique', status: "string default:'draft'", category_id: 'id foreign', relationships: { belongsTo: Category }, traits: 'HasMedia HasSlug' }
