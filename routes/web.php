@@ -11,9 +11,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
+// Replace dashboard with admin
+Route::view('admin', 'admin')
     ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    ->name('admin');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -182,4 +183,5 @@ Route::get('/debug/report-type', function () {
     ];
 })->middleware('auth');
 
+// Make sure auth routes correctly redirect to admin instead of dashboard
 require __DIR__.'/auth.php';

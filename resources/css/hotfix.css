@@ -1,0 +1,21 @@
+/* Critical fixes for Laravel Cloud deployment */
+
+/* Fix sidebar and layout grid */
+body {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: min-content minmax(0, 1fr) min-content;
+  grid-template-areas:
+    "header header header"
+    "sidebar main aside"
+    "sidebar footer aside";
+}
+
+/* Fix dark mode colors */
+.dark {
+  --color-zinc-800: #262626;
+  --color-zinc-900: #171717;
+  --color-zinc-700: #404040;
+  --color-zinc-600: #525252;
+}

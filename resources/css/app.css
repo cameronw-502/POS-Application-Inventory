@@ -2,21 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import the Flux CSS directly to ensure it's available */
 @import '../../vendor/livewire/flux/dist/flux.css';
 
+/* Add critical Flux theme variables */
+@layer base {
+  :root {
+    --color-accent: #3b82f6;
+    --color-accent-foreground: #ffffff;
+    --color-accent-content: #ffffff;
+  }
+  
+  .dark {
+    --color-accent: #6366f1;
+    --color-accent-foreground: #ffffff;
+    --color-accent-content: #ffffff;
+  }
+}
+
 @layer components {
-    [data-flux-field] {
-        @apply grid gap-2;
-    }
+  [data-flux-field] {
+    @apply grid gap-2;
+  }
 
-    [data-flux-label] {
-        @apply mb-0 leading-tight;
-    }
+  [data-flux-label] {
+    @apply mb-0 leading-tight;
+  }
 
-    input:focus[data-flux-control],
-    textarea:focus[data-flux-control],
-    select:focus[data-flux-control] {
-        @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-primary-foreground;
-    }
+  input:focus[data-flux-control],
+  textarea:focus[data-flux-control],
+  select:focus[data-flux-control] {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-primary-foreground;
+  }
+
+  /* Fix for dark mode styling */
+  .dark [data-flux-sidebar] {
+    @apply bg-zinc-900 border-zinc-700;
+  }
+
+  .dark [data-flux-header] {
+    @apply bg-zinc-900 border-zinc-700;
+  }
 }
 
