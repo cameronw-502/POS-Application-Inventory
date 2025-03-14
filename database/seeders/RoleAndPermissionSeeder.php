@@ -20,6 +20,11 @@ class RoleAndPermissionSeeder extends Seeder
             'create users',
             'edit users',
             'delete users',
+            // Add inventory permissions
+            'view inventory',
+            'create inventory',
+            'edit inventory',
+            'delete inventory',
             // Add more permissions as needed
         ];
 
@@ -32,7 +37,14 @@ class RoleAndPermissionSeeder extends Seeder
         $adminRole->givePermissionTo(Permission::all());
 
         $userRole = Role::create(['name' => 'user']);
-        $userRole->givePermissionTo(['view users']);
+        $userRole->givePermissionTo(['view users', 'view inventory']);
+        
+        // Add a cashier role for POS users
+        $cashierRole = Role::create(['name' => 'cashier']);
+        $cashierRole->givePermissionTo([
+            'view inventory',
+            'edit inventory', // For updating stock levels
+        ]);
 
         // Assign admin role to our admin user
         $admin = User::where('email', 'test@testemail.com')->first();
