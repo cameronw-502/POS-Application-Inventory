@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\StockAdjustmentController;
 use App\Http\Controllers\API\PosController as ApiPosController;
+use App\Http\Controllers\API\ApiKeyController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -18,8 +19,9 @@ Route::get('/test', function() {
     ]);
 });
 
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+// Protected routes - require API key
+Route::middleware(['api.key'])->group(function () {
+    // User routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     
@@ -31,7 +33,18 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // POS API routes
     Route::get('pos/products', [ApiPosController::class, 'getProducts']);
+    Route::post('pos/products', [ApiPosController::class, 'createProduct']);
     Route::post('pos/sales', [ApiPosController::class, 'createSale']);
     Route::get('pos/sales', [ApiPosController::class, 'getSales']);
     Route::get('pos/sales/{id}', [ApiPosController::class, 'getSale']);
+});
+
+// API Key Management (Admin only)
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function() {
+    Route::get('/api-keys', [ApiKeyController::class, 'index']);
+    Route::post('/api-keys', [ApiKeyController::class, 'store']);
+    Route::get('/api-keys/{id}', [ApiKeyController::class, 'show']);
+    Route::put('/api-keys/{id}', [ApiKeyController::class, 'update']); 
+    Route::delete('/api-keys/{id}', [ApiKeyController::class, 'destroy']);
+    Route::post('/api-keys/{id}/revoke', [ApiKeyController::class, 'revoke']);
 });

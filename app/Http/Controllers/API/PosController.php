@@ -186,4 +186,35 @@ class PosController extends Controller
             
         return response()->json($sale);
     }
+
+    public function createProduct(Request $request)
+    {
+        if (!auth()->user()->can('create inventory')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
+            'category_id' => 'nullable|exists:categories,id',
+            'sku' => 'nullable|string|unique:products,sku',
+            'description' => 'nullable|string',
+            // Add other fields as needed
+        ]);
+        
+        try {
+            $product = Product::create($validated);
+            
+            return response()->json([
+                'message' => 'Product created successfully',
+                'product' => $product
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

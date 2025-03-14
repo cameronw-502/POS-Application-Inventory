@@ -10,11 +10,14 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'test@testemail.com',
-            'password' => Hash::make('Password1!'),
-            'email_verified_at' => now(),
-        ]);
+        // Use updateOrCreate to avoid duplicate entry errors
+        User::updateOrCreate(
+            ['email' => 'test@testemail.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('Password1!'),
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

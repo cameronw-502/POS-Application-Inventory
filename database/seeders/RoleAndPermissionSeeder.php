@@ -26,22 +26,23 @@ class RoleAndPermissionSeeder extends Seeder
             'edit inventory',
             'delete inventory',
             // Add more permissions as needed
+            'manage api keys',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $adminRole->syncPermissions(Permission::all());
 
-        $userRole = Role::create(['name' => 'user']);
-        $userRole->givePermissionTo(['view users', 'view inventory']);
+        $userRole = Role::firstOrCreate(['name' => 'user']);
+        $userRole->syncPermissions(['view users', 'view inventory']);
         
         // Add a cashier role for POS users
-        $cashierRole = Role::create(['name' => 'cashier']);
-        $cashierRole->givePermissionTo([
+        $cashierRole = Role::firstOrCreate(['name' => 'cashier']);
+        $cashierRole->syncPermissions([
             'view inventory',
             'edit inventory', // For updating stock levels
         ]);
