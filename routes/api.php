@@ -8,6 +8,7 @@ use App\Http\Controllers\API\PosController as ApiPosController;
 use App\Http\Controllers\API\ApiKeyController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\ReceiptController;
+use App\Http\Controllers\API\CustomerController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -46,6 +47,12 @@ Route::middleware(['api.key'])->group(function () {
     Route::post('transactions/report', [TransactionController::class, 'report']);
     Route::get('transactions/{id}', [TransactionController::class, 'show']);
     Route::get('transactions/{transaction}/receipt', [ReceiptController::class, 'getApiReceipt']);
+    
+    // CRM API routes
+    Route::get('customers/search', [CustomerController::class, 'searchByPhone']);
+    Route::get('customers/{id}/transactions', [CustomerController::class, 'getTransactions']);
+    Route::post('customers/{id}/notes', [CustomerController::class, 'addNote']);
+    Route::apiResource('customers', CustomerController::class);
 });
 
 // API Key Management (Admin only)

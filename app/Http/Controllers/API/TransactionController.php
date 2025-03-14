@@ -25,6 +25,7 @@ class TransactionController extends Controller
             $validated = $request->validate([
                 'register_number' => 'required|string',
                 'register_department' => 'required|string',
+                'customer_id' => 'nullable|exists:customers,id',
                 'customer_name' => 'nullable|string',
                 'customer_email' => 'nullable|email',
                 'customer_phone' => 'nullable|string',
@@ -64,6 +65,7 @@ class TransactionController extends Controller
                 'register_number' => $validated['register_number'],
                 'register_department' => $validated['register_department'],
                 'user_id' => auth()->id(),
+                'customer_id' => $validated['customer_id'] ?? null,
                 'customer_name' => $validated['customer_name'] ?? null,
                 'customer_email' => $validated['customer_email'] ?? null,
                 'customer_phone' => $validated['customer_phone'] ?? null,

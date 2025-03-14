@@ -26,7 +26,8 @@ class Transaction extends Model
         'total_amount',
         'payment_status',
         'status',
-        'notes'
+        'notes',
+        'customer_id'
     ];
 
     /**

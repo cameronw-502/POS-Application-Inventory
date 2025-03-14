@@ -217,4 +217,22 @@ class PosController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Find customers by phone number
+     */
+    public function findCustomer(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+        
+        $customers = Customer::where('phone', 'like', '%' . $request->phone . '%')
+            ->orWhere('email', 'like', '%' . $request->input('phone') . '%') // In case they input email
+            ->orWhere('name', 'like', '%' . $request->input('phone') . '%') // In case they input name
+            ->take(5)
+            ->get();
+        
+        return response()->json($customers);
+    }
 }

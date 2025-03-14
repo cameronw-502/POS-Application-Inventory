@@ -71,9 +71,21 @@ class TransactionsRelationManager extends RelationManager
             ])
             ->bulkActions([
                 // Typically no bulk actions for transactions
-            ])
-            ->emptyStateHeading('No transactions yet')
-            ->emptyStateDescription('This customer has not made any transactions yet.')
-            ->emptyStateIcon('heroicon-o-shopping-cart');
+            ]);
+    }
+
+    protected function getTableEmptyStateHeading(): ?string
+    {
+        return 'No transactions yet';
+    }
+
+    protected function getTableEmptyStateDescription(): ?string
+    {
+        return 'This customer has not made any transactions yet.';
+    }
+
+    protected function getTableEmptyStateIcon(): ?string
+    {
+        return 'heroicon-o-shopping-cart';
     }
 }
