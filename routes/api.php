@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\StockAdjustmentController;
-use App\Http\Controllers\API\PosController;
+use App\Http\Controllers\API\PosController as ApiPosController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -20,9 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Stock adjustment routes
     Route::apiResource('stock-adjustments', StockAdjustmentController::class);
     
-    // POS routes
-    Route::get('pos/products', [PosController::class, 'getProducts']);
-    Route::post('pos/sales', [PosController::class, 'createSale']);
-    Route::get('pos/sales', [PosController::class, 'getSales']);
-    Route::get('pos/sales/{id}', [PosController::class, 'getSale']);
+    // POS API routes
+    Route::get('pos/products', [ApiPosController::class, 'getProducts']);
+    Route::post('pos/sales', [ApiPosController::class, 'createSale']);
+    Route::get('pos/sales', [ApiPosController::class, 'getSales']);
+    Route::get('pos/sales/{id}', [ApiPosController::class, 'getSale']);
 });

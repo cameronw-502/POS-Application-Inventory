@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\InventoryController;
+use App\Http\Controllers\API\StockAdjustmentController;
+use App\Http\Controllers\API\PosController as ApiPosController;
 
 // Remove or comment out any Auth::routes() calls
 
@@ -191,17 +193,3 @@ Route::get('/debug/report-type', function () {
 
 // Make sure auth routes correctly redirect to admin instead of dashboard
 require __DIR__.'/auth.php';
-
-// Public routes
-Route::post('/login', [AuthController::class, 'login']);
-
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
-    
-    // Inventory routes
-    Route::apiResource('inventory', InventoryController::class);
-    
-    // Add more resource routes as needed
-});
