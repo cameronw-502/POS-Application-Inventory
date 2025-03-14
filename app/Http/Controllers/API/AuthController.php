@@ -21,18 +21,20 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+            return response()->json([
+                'message' => 'The provided credentials are incorrect.'
+            ], 401);
         }
 
-        // Create token with permissions based on user role
-        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+        // Clear any existing tokens
+        $user->tokens()->delete();
+        
+        // Create a new token
+        $token = $user->createToken('api-test-token')->plainTextToken;
         
         return response()->json([
             'user' => $user,
-            'permissions' => $permissions,
-            'token' => $user->createToken('pos-token', $permissions)->plainTextToken
+            'token' => $token
         ]);
     }
 
@@ -45,9 +47,6 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json([
-            'user' => $request->user(),
-            'permissions' => $request->user()->getAllPermissions()->pluck('name')
-        ]);
+        return response()->json($request->user());
     }
 }
