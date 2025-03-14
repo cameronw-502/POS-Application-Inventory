@@ -10,6 +10,8 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\StockAdjustmentController;
 use App\Http\Controllers\API\PosController as ApiPosController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ProfileController;
 
 // Remove or comment out any Auth::routes() calls
 
@@ -190,6 +192,21 @@ Route::get('/debug/report-type', function () {
         'has_selectedReport_in_form' => isset($formData['selectedReport']),
     ];
 })->middleware('auth');
+
+// Receipt printing route
+Route::get('/receipts/{transaction}', [ReceiptController::class, 'show'])
+    ->name('receipts.show')
+    ->middleware(['auth']);
+
+// Route to download receipt PDF
+Route::get('/receipts/{transaction}/pdf', [ReceiptController::class, 'downloadPdf'])
+    ->name('receipts.pdf')
+    ->middleware(['auth']);
+
+// Route for thermal printer-friendly receipt
+Route::get('/receipts/{transaction}/thermal', [ReceiptController::class, 'thermalPrint'])
+    ->name('receipts.thermal')
+    ->middleware(['auth']);
 
 // Make sure auth routes correctly redirect to admin instead of dashboard
 require __DIR__.'/auth.php';

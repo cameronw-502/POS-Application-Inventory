@@ -6,6 +6,8 @@ use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\StockAdjustmentController;
 use App\Http\Controllers\API\PosController as ApiPosController;
 use App\Http\Controllers\API\ApiKeyController;
+use App\Http\Controllers\API\TransactionController;
+use App\Http\Controllers\API\ReceiptController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +39,13 @@ Route::middleware(['api.key'])->group(function () {
     Route::post('pos/sales', [ApiPosController::class, 'createSale']);
     Route::get('pos/sales', [ApiPosController::class, 'getSales']);
     Route::get('pos/sales/{id}', [ApiPosController::class, 'getSale']);
+    
+    // Transaction routes
+    Route::post('transactions', [TransactionController::class, 'store']);
+    Route::get('transactions/receipt/{receiptNumber}', [TransactionController::class, 'byReceiptNumber']);
+    Route::post('transactions/report', [TransactionController::class, 'report']);
+    Route::get('transactions/{id}', [TransactionController::class, 'show']);
+    Route::get('transactions/{transaction}/receipt', [ReceiptController::class, 'getApiReceipt']);
 });
 
 // API Key Management (Admin only)
