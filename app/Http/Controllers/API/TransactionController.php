@@ -18,144 +18,109 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'register_number' => 'nullable|string|max:50',
-            'register_department' => 'nullable|string|max:100',
-            'customer_name' => 'nullable|string|max:255',
-            'customer_email' => 'nullable|email|max:255',
-            'customer_phone' => 'nullable|string|max:50',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.discount_amount' => 'nullable|numeric|min:0',
-            'payments' => 'required|array|min:1',
-            'payments.*.payment_method' => 'required|in:cash,credit_card,debit_card,gift_card',
-            'payments.*.amount' => 'required|numeric|min:0',
-            'payments.*.reference' => 'nullable|string|max:255',
-            'payments.*.change_amount' => 'nullable|numeric|min:0',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Start a transaction
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();
+
+            // Validate request
+            $validated = $request->validate([
+                'register_number' => 'required|string',
+                'register_department' => 'required|string',
+                'customer_name' => 'nullable|string',
+                'customer_email' => 'nullable|email',
+                'customer_phone' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.discount_amount' => 'nullable|numeric|min:0',
+                'payments' => 'required|array|min:1',
+                'payments.*.payment_method' => 'required|in:cash,credit_card,debit_card,gift_card',
+                'payments.*.amount' => 'required|numeric|min:0',
+                'payments.*.reference' => 'nullable|string',
+                'payments.*.change_amount' => 'nullable|numeric|min:0',
+            ]);
+
+            // Generate receipt number
+            $receiptNumber = 'INV-' . now()->format('Ymd') . sprintf('%04d', Transaction::whereDate('created_at', today())->count() + 1);
+
             // Calculate totals
-            $subtotal = 0;
-            $totalDiscount = 0;
-            $taxRate = 0.08; // 8% tax rate, move to config or settings table
-            $preparedItems = [];
+            $subtotal = collect($validated['items'])->sum(function ($item) {
+                return $item['quantity'] * $item['unit_price'];
+            });
             
-            foreach ($request->items as $item) {
+            $discountTotal = collect($validated['items'])->sum(function ($item) {
+                return $item['discount_amount'] ?? 0;
+            });
+
+            $taxRate = 0.08; // 8% tax
+            $taxableAmount = $subtotal - $discountTotal;
+            $taxAmount = $taxableAmount * $taxRate;
+            $total = $taxableAmount + $taxAmount;
+
+            // Create transaction with correct column name
+            $transaction = Transaction::create([
+                'receipt_number' => $receiptNumber,
+                'register_number' => $validated['register_number'],
+                'register_department' => $validated['register_department'],
+                'user_id' => auth()->id(),
+                'customer_name' => $validated['customer_name'] ?? null,
+                'customer_email' => $validated['customer_email'] ?? null,
+                'customer_phone' => $validated['customer_phone'] ?? null,
+                'subtotal' => $subtotal, // Changed from subtotal_amount to subtotal
+                'discount_amount' => $discountTotal,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $total,
+                'payment_status' => 'paid',
+                'status' => 'completed',
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Create transaction items
+            foreach ($validated['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 
-                // Check if we have enough stock
-                if ($product->stock_quantity < $item['quantity']) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => "Not enough stock for product: {$product->name}",
-                        'available' => $product->stock_quantity,
-                        'requested' => $item['quantity']
-                    ], 400);
-                }
+                $subtotal = ($item['quantity'] * $item['unit_price']) - ($item['discount_amount'] ?? 0);
+                $taxAmount = $subtotal * 0.08; // 8% tax
+                $total = $subtotal + $taxAmount;
                 
-                $itemSubtotal = $item['unit_price'] * $item['quantity'];
-                $itemDiscount = isset($item['discount_amount']) ? $item['discount_amount'] : 0;
-                $itemTaxable = $itemSubtotal - $itemDiscount;
-                $itemTax = $itemTaxable * $taxRate;
-                $itemTotal = $itemTaxable + $itemTax;
-                
-                $subtotal += $itemSubtotal;
-                $totalDiscount += $itemDiscount;
-                
-                $preparedItems[] = [
-                    'product_id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $product->sku,
+                $transaction->items()->create([
+                    'product_id' => $item['product_id'],
+                    'product_name' => $product->name,
+                    'product_sku' => $product->sku,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'discount_amount' => $itemDiscount,
-                    'tax_amount' => $itemTax,
-                    'subtotal_amount' => $itemSubtotal,
-                    'total_amount' => $itemTotal,
-                ];
-                
-                // Reduce stock
+                    'discount_amount' => $item['discount_amount'] ?? 0,
+                    'subtotal' => $subtotal,
+                    'tax_rate' => 0.08,
+                    'tax_amount' => $taxAmount,
+                    'total' => $total,
+                    'line_total' => $total // Add this line
+                ]);
+
+                // Update product stock
                 $product->stock_quantity -= $item['quantity'];
-                $product->stock = $product->stock_quantity;
                 $product->save();
             }
-            
-            $taxableAmount = $subtotal - $totalDiscount;
-            $taxAmount = $taxableAmount * $taxRate;
-            $totalAmount = $taxableAmount + $taxAmount;
-            
-            // Check if payment is sufficient
-            $totalPayment = array_sum(array_column($request->payments, 'amount'));
-            if ($totalPayment < $totalAmount) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Insufficient payment amount',
-                    'required' => $totalAmount,
-                    'provided' => $totalPayment
-                ], 400);
-            }
-            
-            // Create transaction
-            $transaction = Transaction::create([
-                'receipt_number' => Transaction::generateReceiptNumber(),
-                'register_number' => $request->register_number ?? 'MAIN',
-                'department' => $request->register_department ?? 'Sales',
-                'user_id' => auth()->id(),
-                'customer_name' => $request->customer_name,
-                'customer_email' => $request->customer_email,
-                'customer_phone' => $request->customer_phone,
-                'customer_id' => $request->customer_id ?? null,
-                'subtotal_amount' => $subtotal,
-                'discount_amount' => $totalDiscount,
-                'tax_amount' => $taxAmount,
-                'total_amount' => $totalAmount,
-                'payment_status' => ($totalPayment >= $totalAmount) ? 'paid' : 'partial',
-                'status' => 'completed',
-                'notes' => $request->notes,
-            ]);
-            
-            // Create transaction items
-            foreach ($preparedItems as $item) {
-                $transaction->items()->create($item);
-            }
-            
-            // Create transaction payments
-            foreach ($request->payments as $payment) {
+
+            // Create payments
+            foreach ($validated['payments'] as $payment) {
                 $transaction->payments()->create([
                     'payment_method' => $payment['payment_method'],
                     'amount' => $payment['amount'],
                     'reference' => $payment['reference'] ?? null,
                     'change_amount' => $payment['change_amount'] ?? 0,
-                    'status' => 'completed',
+                    'status' => 'completed'
                 ]);
             }
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'message' => 'Transaction created successfully',
-                'transaction' => $transaction->load('items', 'payments'),
-                'receipt' => [
-                    'receipt_number' => $transaction->receipt_number,
-                    'date' => $transaction->created_at->format('Y-m-d H:i:s'),
-                    'cashier' => auth()->user()->name,
-                    'total' => $transaction->total_amount,
-                    'payment' => $totalPayment,
-                    'change' => $totalPayment - $totalAmount,
-                ]
+                'transaction' => $transaction->load('items.product', 'payments'),
             ], 201);
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

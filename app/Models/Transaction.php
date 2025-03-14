@@ -15,19 +15,18 @@ class Transaction extends Model
     protected $fillable = [
         'receipt_number',
         'register_number',
-        'department',
+        'register_department',
         'user_id',
-        'customer_id',
         'customer_name',
         'customer_email',
         'customer_phone',
-        'subtotal_amount',
+        'subtotal', // Changed from subtotal_amount
         'discount_amount',
         'tax_amount',
         'total_amount',
         'payment_status',
         'status',
-        'notes',
+        'notes'
     ];
 
     /**

@@ -13,14 +13,16 @@ class TransactionItem extends Model
     protected $fillable = [
         'transaction_id',
         'product_id',
-        'name',
-        'sku',
+        'product_name',
+        'product_sku',
         'quantity',
         'unit_price',
         'discount_amount',
+        'subtotal',
+        'tax_rate',
         'tax_amount',
-        'subtotal_amount',
-        'total_amount',
+        'total',
+        'line_total'
     ];
 
     /**
