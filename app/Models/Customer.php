@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Customer extends Model
 {
@@ -21,10 +23,24 @@ class Customer extends Model
         'notes',
         'loyalty_points',
         'status',
+        'company_name',
+        'title',
+        'website',
+        'source',
+        'industry',
+        'annual_revenue',
+        'lead_status',
+        'last_contacted_at',
+        'assigned_to',
+        'customer_notes',
+        'custom_fields'
     ];
 
     protected $casts = [
         'loyalty_points' => 'integer',
+        'annual_revenue' => 'decimal:2',
+        'last_contacted_at' => 'datetime',
+        'custom_fields' => 'array'
     ];
 
     /**
@@ -72,5 +88,25 @@ class Customer extends Model
     public function getLifetimeValueAttribute()
     {
         return $this->sales()->sum('total');
+    }
+
+    public function assignedAgent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(CustomerNote::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(CustomerActivity::class);
     }
 }
