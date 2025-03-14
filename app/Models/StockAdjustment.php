@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class StockAdjustment extends Model
 {
@@ -13,6 +14,7 @@ class StockAdjustment extends Model
 
     protected $fillable = [
         'type',
+        'reference_number',
         'notes',
         'user_id',
         'reference_id', // Can be sale_id, purchase_id, etc.
@@ -23,6 +25,19 @@ class StockAdjustment extends Model
     protected $casts = [
         'date' => 'datetime',
     ];
+
+    // Add this boot method to automatically generate reference_number
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($stockAdjustment) {
+            // Only generate a reference number if one isn't already set
+            if (empty($stockAdjustment->reference_number)) {
+                $stockAdjustment->reference_number = 'ADJ-' . Str::random(8);
+            }
+        });
+    }
 
     /**
      * Get the items for the adjustment.
