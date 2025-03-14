@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class StockAdjustmentItem extends Model
 {
@@ -56,51 +57,77 @@ class StockAdjustmentItem extends Model
      */
     public function updateProductStock()
     {
-        $product = $this->product;
+        DB::beginTransaction();
         
-        if (!$product) {
-            Log::error('Product not found for stock adjustment item', [
-                'stock_adjustment_item_id' => $this->id,
-                'product_id' => $this->product_id,
-            ]);
-            return;
-        }
+        try {
+            $product = $this->product;
+            
+            if (!$product) {
+                Log::error('Product not found for stock adjustment item', [
+                    'stock_adjustment_item_id' => $this->id,
+                    'product_id' => $this->product_id,
+                ]);
+                return;
+            }
 
-        $adjustmentType = optional($this->stockAdjustment)->type;
-        $oldStock = $product->stock;
-
-        // Update the product stock based on the adjustment type
-        switch ($adjustmentType) {
-            case 'addition':
-            case 'purchase':
-            case 'return':
-                $product->stock += $this->quantity;
-                break;
-
-            case 'subtraction':
-            case 'sale':
-            case 'damage':
-            case 'loss':
-                $product->stock -= $this->quantity;
-                break;
-                
-            default:
-                Log::warning('Unknown stock adjustment type', [
-                    'type' => $adjustmentType,
+            $stockAdjustment = $this->stockAdjustment;
+            if (!$stockAdjustment) {
+                Log::error('Stock adjustment not found for item', [
+                    'stock_adjustment_item_id' => $this->id,
                     'stock_adjustment_id' => $this->stock_adjustment_id,
                 ]);
-                break;
+                return;
+            }
+
+            $adjustmentType = $stockAdjustment->type;
+            $oldStock = $product->stock;
+
+            // Update the product stock based on the adjustment type
+            switch ($adjustmentType) {
+                case 'addition':
+                case 'purchase':
+                case 'return':
+                    $product->stock_quantity += $this->quantity;
+                    $product->stock = $product->stock_quantity; // Ensure both fields are updated
+                    break;
+
+                case 'subtraction':
+                case 'sale':
+                case 'damage':
+                case 'loss':
+                    $product->stock_quantity -= $this->quantity;
+                    $product->stock = $product->stock_quantity; // Ensure both fields are updated
+                    break;
+                    
+                default:
+                    Log::warning('Unknown stock adjustment type', [
+                        'type' => $adjustmentType,
+                        'stock_adjustment_id' => $this->stock_adjustment_id,
+                    ]);
+                    break;
+            }
+
+            // Save the product
+            $product->save();
+            
+            DB::commit();
+
+            Log::info('Product stock updated by adjustment', [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'adjustment_type' => $adjustmentType,
+                'quantity' => $this->quantity,
+                'old_stock' => $oldStock,
+                'new_stock' => $product->stock,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in updateProductStock', [
+                'error' => $e->getMessage(),
+                'stock_adjustment_item_id' => $this->id,
+                'product_id' => $this->product_id,
+                'trace' => $e->getTraceAsString()
+            ]);
         }
-
-        $product->save();
-
-        Log::info('Product stock updated by adjustment', [
-            'product_id' => $product->id,
-            'product_name' => $product->name,
-            'adjustment_type' => $adjustmentType,
-            'quantity' => $this->quantity,
-            'old_stock' => $oldStock,
-            'new_stock' => $product->stock,
-        ]);
     }
 }
