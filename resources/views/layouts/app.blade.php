@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ \App\Helpers\PosHelper::getTheme() }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ \App\Helpers\PosHelper::getTheme() }}" class="{{ \App\Helpers\PosHelper::getTheme() === 'dark' ? 'dark' : '' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Force cache refresh -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
     <title>@yield('title', config('app.name'))</title>
 
@@ -19,8 +23,10 @@
     
     <!-- Additional Styles -->
     @stack('styles')
+    
+    @livewireStyles
 </head>
-<body>
+<body class="font-sans antialiased text-foreground bg-background">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="{{ url('/') }}">
@@ -78,8 +84,23 @@
     
     <!-- Additional Scripts -->
     @stack('scripts')
+    @livewireScripts
     
     <!-- Debug indicator -->
     <div class="debug-style-indicator">Styles loaded</div>
+
+    <!-- Force refresh script -->
+    <script>
+        // Add a timestamp parameter to stylesheet URLs to force a refresh
+        document.addEventListener('DOMContentLoaded', function() {
+            const timestamp = new Date().getTime();
+            const styleSheets = document.querySelectorAll('link[rel="stylesheet"]');
+            styleSheets.forEach(function(link) {
+                if (!link.href.includes('_t=')) {
+                    link.href = link.href + (link.href.indexOf('?') >= 0 ? '&' : '?') + '_t=' + timestamp;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationGroup;
 
 // Import all widget classes
 use App\Filament\Widgets\InventorySummary;
@@ -64,6 +65,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->login()
+            ->navigationGroups([
+                NavigationGroup::make()
+                    ->label('Management'),
+                NavigationGroup::make()
+                    ->label('Administration'),
             ]);
     }
 }

@@ -1,21 +1,35 @@
 /* Critical fixes for Laravel Cloud deployment */
 
-/* Fix sidebar and layout grid */
-body {
-  min-height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  grid-template-columns: min-content minmax(0, 1fr) min-content;
-  grid-template-areas:
-    "header header header"
-    "sidebar main aside"
-    "sidebar footer aside";
-}
+/* Remove problematic body styling that's breaking the layout */
+/* We'll use Laravel 12's default layout approach instead */
 
-/* Fix dark mode colors */
+/* Fix dark mode colors with Laravel 12 standard values */
 .dark {
-  --color-zinc-800: #262626;
-  --color-zinc-900: #171717;
-  --color-zinc-700: #404040;
-  --color-zinc-600: #525252;
+  --background: 23 23 23;
+  --foreground: 250 250 250;
+  
+  --card: 33 33 33;
+  --card-foreground: 250 250 250;
+  
+  --popover: 33 33 33;
+  --popover-foreground: 250 250 250;
+  
+  --primary: 56 189 248;
+  --primary-foreground: 255 255 255;
+  
+  --secondary: 38 38 38;
+  --secondary-foreground: 250 250 250;
+  
+  --muted: 38 38 38;
+  --muted-foreground: 163 163 163;
+  
+  --accent: 38 38 38;
+  --accent-foreground: 250 250 250;
+  
+  --destructive: 127 29 29;
+  --destructive-foreground: 250 250 250;
+  
+  --border: 38 38 38;
+  --input: 38 38 38;
+  --ring: 56 189 248;
 }

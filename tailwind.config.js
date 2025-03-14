@@ -6,30 +6,27 @@ export default {
         "./resources/**/*.vue",
         "./vendor/livewire/flux/dist/**/*.js",
         "./vendor/livewire/flux/src/View/Components/**/*.php",
+        "./vendor/livewire/livewire/resources/views/**/*.blade.php",
+        "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/**/*.blade.php",
     ],
     darkMode: "class",
     theme: {
         extend: {
             colors: {
+                // Essential text/background colors
+                background: "rgb(var(--background) / <alpha-value>)",
+                foreground: "rgb(var(--foreground) / <alpha-value>)",
+
                 primary: {
-                    DEFAULT: "#3b82f6", // Blue-500
-                    50: "#eff6ff",
-                    100: "#dbeafe",
-                    200: "#bfdbfe",
-                    300: "#93c5fd",
-                    400: "#60a5fa",
-                    500: "#3b82f6",
-                    600: "#2563eb",
-                    700: "#1d4ed8",
-                    800: "#1e40af",
-                    900: "#1e3a8a",
-                    950: "#172554",
-                    foreground: "#ffffff",
+                    DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
+                    foreground:
+                        "rgb(var(--color-primary-foreground) / <alpha-value>)",
                 },
                 accent: {
-                    DEFAULT: "#6366f1", // Indigo-500
-                    foreground: "#ffffff",
-                    content: "#ffffff",
+                    DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
+                    foreground:
+                        "rgb(var(--color-accent-foreground) / <alpha-value>)",
+                    content: "rgb(var(--color-accent-content) / <alpha-value>)",
                 },
                 neutral: {
                     50: "#fafafa",

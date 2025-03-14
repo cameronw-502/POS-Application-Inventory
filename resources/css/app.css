@@ -1,22 +1,41 @@
+@import '../../vendor/livewire/flux/dist/flux.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import the Flux CSS directly to ensure it's available */
-@import '../../vendor/livewire/flux/dist/flux.css';
+/* Laravel default styling */
+[x-cloak] { display: none !important; }
 
-/* Add critical Flux theme variables */
 @layer base {
   :root {
-    --color-accent: #3b82f6;
-    --color-accent-foreground: #ffffff;
-    --color-accent-content: #ffffff;
+    /* Essential text/background colors */
+    --background: 255 255 255;
+    --foreground: 10 10 10;
+    
+    /* Primary colors */
+    --color-primary: 14 165 233;
+    --color-primary-foreground: 255 255 255;
+    
+    /* Accent colors */
+    --color-accent: 59 130 246;
+    --color-accent-foreground: 255 255 255;
+    --color-accent-content: 255 255 255;
   }
   
   .dark {
-    --color-accent: #6366f1;
-    --color-accent-foreground: #ffffff;
-    --color-accent-content: #ffffff;
+    /* Essential text/background colors */
+    --background: 23 23 23;
+    --foreground: 250 250 250;
+    
+    /* Primary colors */
+    --color-primary: 56 189 248;
+    --color-primary-foreground: 255 255 255;
+    
+    /* Accent colors */
+    --color-accent: 99 102 241;
+    --color-accent-foreground: 255 255 255;
+    --color-accent-content: 255 255 255;
   }
 }
 
@@ -32,16 +51,16 @@
   input:focus[data-flux-control],
   textarea:focus[data-flux-control],
   select:focus[data-flux-control] {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-primary-foreground;
+    @apply outline-none ring-2 ring-primary ring-offset-2;
   }
 
   /* Fix for dark mode styling */
   .dark [data-flux-sidebar] {
-    @apply bg-zinc-900 border-zinc-700;
+    @apply bg-gray-900 border-gray-800;
   }
 
   .dark [data-flux-header] {
-    @apply bg-zinc-900 border-zinc-700;
+    @apply bg-gray-900 border-gray-800;
   }
 }
 

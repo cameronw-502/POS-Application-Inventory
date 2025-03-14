@@ -7,9 +7,13 @@ use App\Http\Controllers\BarcodeController;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 
+// Remove or comment out any Auth::routes() calls
+
 Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+    return redirect('/admin');
+});
+
+// Keep only the routes you need
 
 // Remove the admin route
 // Route::view('admin', 'admin')
