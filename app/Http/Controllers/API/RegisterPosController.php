@@ -130,7 +130,18 @@ class RegisterPosController extends Controller
                 $item->save();
                 
                 // Update inventory - Use stock_quantity instead of quantity
-                $product->decrement('stock_quantity', $itemData['quantity']);
+                $product->stock_quantity -= $itemData['quantity'];
+                $product->stock = $product->stock_quantity; // Ensure both fields are updated
+                $product->save();
+
+                // Also add a log statement to verify it's happening:
+                \Log::info('Product inventory updated', [
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'old_quantity' => $product->getOriginal('stock_quantity'),
+                    'new_quantity' => $product->stock_quantity,
+                    'transaction_id' => $transaction->id
+                ]);
             }
 
             // Create a payment record
@@ -154,6 +165,12 @@ class RegisterPosController extends Controller
             $register->save();
 
             DB::commit();
+
+            \Log::info('Transaction completed successfully', [
+                'transaction_id' => $transaction->id,
+                'total_amount' => $totalAmount,
+                'item_count' => count($request->items)
+            ]);
 
             return response()->json([
                 'success' => true,

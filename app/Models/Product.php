@@ -104,7 +104,7 @@ class Product extends Model implements HasMedia
         $this->attributes['stock_quantity'] = $value;
         
         // Log the stock change
-        Log::info("Product stock updated directly", [
+        \Log::info("Product stock updated directly", [
             'product_id' => $this->id ?? 'new',
             'product_name' => $this->name ?? 'unknown',
             'old_stock' => $this->getOriginal('stock') ?? 0,
@@ -118,7 +118,7 @@ class Product extends Model implements HasMedia
         $this->attributes['stock'] = $value;
         
         // Log the stock change
-        Log::info("Product stock_quantity updated", [
+        \Log::info("Product stock_quantity updated", [
             'product_id' => $this->id ?? 'new',
             'product_name' => $this->name ?? 'unknown',
             'old_stock_quantity' => $this->getOriginal('stock_quantity') ?? 0,
