@@ -8,6 +8,8 @@ use App\Http\Controllers\API\PosController as ApiPosController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\ReceiptController;
 use App\Http\Controllers\API\CustomerController;
+use App\Http\Controllers\API\RegisterController;
+use App\Http\Controllers\API\RegisterPosController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -53,3 +55,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('customers/{id}/notes', [CustomerController::class, 'addNote']);
     Route::apiResource('customers', CustomerController::class);
 });
+
+// Register-specific API routes
+Route::middleware('auth:register')->prefix('register')->group(function () {
+    Route::post('/status', [RegisterController::class, 'updateStatus']);
+    Route::get('/settings', [RegisterController::class, 'getSettings']);
+    Route::get('/transactions', [RegisterController::class, 'getTransactions']);
+    
+    // POS operations specific to this register
+    Route::post('/sales', [RegisterPosController::class, 'createSale']);
+    Route::get('/sales', [RegisterPosController::class, 'getSales']);
+});
+
+// Real-time register activity tracking
+Route::post('/register/heartbeat', [RegisterController::class, 'heartbeat'])
+    ->middleware('auth:register');
