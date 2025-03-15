@@ -5,7 +5,6 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\StockAdjustmentController;
 use App\Http\Controllers\API\PosController as ApiPosController;
-use App\Http\Controllers\API\ApiKeyController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\ReceiptController;
 use App\Http\Controllers\API\CustomerController;
@@ -22,8 +21,8 @@ Route::get('/test', function() {
     ]);
 });
 
-// Protected routes - require API key
-Route::middleware(['api.key'])->group(function () {
+// Protected routes with Sanctum authentication
+Route::middleware('auth:sanctum')->group(function () {
     // User routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
@@ -53,14 +52,4 @@ Route::middleware(['api.key'])->group(function () {
     Route::get('customers/{id}/transactions', [CustomerController::class, 'getTransactions']);
     Route::post('customers/{id}/notes', [CustomerController::class, 'addNote']);
     Route::apiResource('customers', CustomerController::class);
-});
-
-// API Key Management (Admin only)
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function() {
-    Route::get('/api-keys', [ApiKeyController::class, 'index']);
-    Route::post('/api-keys', [ApiKeyController::class, 'store']);
-    Route::get('/api-keys/{id}', [ApiKeyController::class, 'show']);
-    Route::put('/api-keys/{id}', [ApiKeyController::class, 'update']); 
-    Route::delete('/api-keys/{id}', [ApiKeyController::class, 'destroy']);
-    Route::post('/api-keys/{id}/revoke', [ApiKeyController::class, 'revoke']);
 });
