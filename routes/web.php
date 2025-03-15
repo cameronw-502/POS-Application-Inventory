@@ -12,6 +12,8 @@ use App\Http\Controllers\API\StockAdjustmentController;
 use App\Http\Controllers\API\PosController as ApiPosController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\ReceivingReportController;
 
 // Remove or comment out any Auth::routes() calls
 
@@ -210,3 +212,12 @@ Route::get('/receipts/{transaction}/thermal', [ReceiptController::class, 'therma
 
 // Make sure auth routes correctly redirect to admin instead of dashboard
 require __DIR__.'/auth.php';
+
+// Make sure this route exists
+Route::get('/purchase-orders/{purchaseOrder}/pdf', [PurchaseOrderController::class, 'generatePdf'])
+    ->name('purchase-orders.pdf');
+
+// Add this to your web routes
+Route::get('/receiving-reports/{receivingReport}/pdf', [ReceivingReportController::class, 'generatePdf'])
+    ->name('receiving-reports.pdf')
+    ->middleware(['auth']);
