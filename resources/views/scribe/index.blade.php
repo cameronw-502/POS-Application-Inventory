@@ -77,9 +77,6 @@
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-GETapi-ping">
                                 <a href="#endpoints-GETapi-ping">GET api/ping</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-test">
-                                <a href="#endpoints-GETapi-test">GET api/test</a>
-                            </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-logout">
                                 <a href="#endpoints-POSTapi-logout">POST api/logout</a>
                             </li>
@@ -167,23 +164,32 @@
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-PUTapi-customers--id-">
                                 <a href="#endpoints-PUTapi-customers--id-">Update a customer</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-admin-api-keys">
-                                <a href="#endpoints-GETapi-admin-api-keys">GET api/admin/api-keys</a>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-register-status">
+                                <a href="#endpoints-POSTapi-register-status">Update the register status.</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-admin-api-keys">
-                                <a href="#endpoints-POSTapi-admin-api-keys">POST api/admin/api-keys</a>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-register-settings">
+                                <a href="#endpoints-GETapi-register-settings">Get the register settings.</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-admin-api-keys--id-">
-                                <a href="#endpoints-GETapi-admin-api-keys--id-">GET api/admin/api-keys/{id}</a>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-register-login">
+                                <a href="#endpoints-POSTapi-register-login">Login to a register.</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-PUTapi-admin-api-keys--id-">
-                                <a href="#endpoints-PUTapi-admin-api-keys--id-">PUT api/admin/api-keys/{id}</a>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-register-logout">
+                                <a href="#endpoints-POSTapi-register-logout">Logout from register.</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-DELETEapi-admin-api-keys--id-">
-                                <a href="#endpoints-DELETEapi-admin-api-keys--id-">DELETE api/admin/api-keys/{id}</a>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-register-cash">
+                                <a href="#endpoints-POSTapi-register-cash">Update cash amount in register.</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-admin-api-keys--id--revoke">
-                                <a href="#endpoints-POSTapi-admin-api-keys--id--revoke">POST api/admin/api-keys/{id}/revoke</a>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-register-transactions">
+                                <a href="#endpoints-GETapi-register-transactions">Get transactions for this register.</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-register-sales">
+                                <a href="#endpoints-POSTapi-register-sales">Create a new sale transaction.</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-register-sales">
+                                <a href="#endpoints-GETapi-register-sales">Get sales for this register.</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-register-heartbeat">
+                                <a href="#endpoints-POSTapi-register-heartbeat">Log heartbeat from register.</a>
                             </li>
                                                                         </ul>
                             </ul>
@@ -196,7 +202,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: March 14, 2025</li>
+        <li>Last updated: March 15, 2025</li>
     </ul>
 </div>
 
@@ -499,131 +505,6 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-GETapi-test">GET api/test</h2>
-
-<p>
-</p>
-
-
-
-<span id="example-requests-GETapi-test">
-<blockquote>Example request:</blockquote>
-
-
-<div class="bash-example">
-    <pre><code class="language-bash">curl --request GET \
-    --get "http://laravel-app.test/api/test" \
-    --header "Content-Type: application/json" \
-    --header "Accept: application/json"</code></pre></div>
-
-
-<div class="javascript-example">
-    <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/test"
-);
-
-const headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-};
-
-fetch(url, {
-    method: "GET",
-    headers,
-}).then(response =&gt; response.json());</code></pre></div>
-
-</span>
-
-<span id="example-responses-GETapi-test">
-            <blockquote>
-            <p>Example response (200):</p>
-        </blockquote>
-                <details class="annotation">
-            <summary style="cursor: pointer;">
-                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
-            </summary>
-            <pre><code class="language-http">cache-control: no-cache, private
-content-type: application/json
-vary: Origin
- </code></pre></details>         <pre>
-
-<code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API test endpoint reached successfully&quot;,
-    &quot;timestamp&quot;: &quot;2025-03-14 22:50:06&quot;
-}</code>
- </pre>
-    </span>
-<span id="execution-results-GETapi-test" hidden>
-    <blockquote>Received response<span
-                id="execution-response-status-GETapi-test"></span>:
-    </blockquote>
-    <pre class="json"><code id="execution-response-content-GETapi-test"
-      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
-</span>
-<span id="execution-error-GETapi-test" hidden>
-    <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-GETapi-test">
-
-Tip: Check that you&#039;re properly connected to the network.
-If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
-You can check the Dev Tools console for debugging information.</code></pre>
-</span>
-<form id="form-GETapi-test" data-method="GET"
-      data-path="api/test"
-      data-authed="0"
-      data-hasfiles="0"
-      data-isarraybody="0"
-      autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('GETapi-test', this);">
-    <h3>
-        Request&nbsp;&nbsp;&nbsp;
-                    <button type="button"
-                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-GETapi-test"
-                    onclick="tryItOut('GETapi-test');">Try it out ⚡
-            </button>
-            <button type="button"
-                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-GETapi-test"
-                    onclick="cancelTryOut('GETapi-test');" hidden>Cancel 🛑
-            </button>&nbsp;&nbsp;
-            <button type="submit"
-                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-GETapi-test"
-                    data-initial-text="Send Request 💥"
-                    data-loading-text="⏱ Sending..."
-                    hidden>Send Request 💥
-            </button>
-            </h3>
-            <p>
-            <small class="badge badge-green">GET</small>
-            <b><code>api/test</code></b>
-        </p>
-                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="GETapi-test"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="GETapi-test"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                        </form>
-
                     <h2 id="endpoints-POSTapi-logout">POST api/logout</h2>
 
 <p>
@@ -781,7 +662,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -905,7 +786,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -1184,7 +1065,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -1611,7 +1492,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -1703,7 +1584,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"type\": \"loss\",
+    \"type\": \"correction\",
     \"notes\": \"architecto\",
     \"items\": [
         {
@@ -1727,7 +1608,7 @@ const headers = {
 };
 
 let body = {
-    "type": "loss",
+    "type": "correction",
     "notes": "architecto",
     "items": [
         {
@@ -1824,10 +1705,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="type"                data-endpoint="POSTapi-stock-adjustments"
-               value="loss"
+               value="correction"
                data-component="body">
     <br>
-<p>Example: <code>loss</code></p>
+<p>Example: <code>correction</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>purchase</code></li> <li><code>sale</code></li> <li><code>loss</code></li> <li><code>correction</code></li> <li><code>return</code></li></ul>
         </div>
@@ -1937,7 +1818,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -2317,7 +2198,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -2601,7 +2482,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"payment_method\": \"cash\",
+    \"payment_method\": \"debit\",
     \"items\": [
         {
             \"product_id\": \"architecto\",
@@ -2627,7 +2508,7 @@ const headers = {
 };
 
 let body = {
-    "payment_method": "cash",
+    "payment_method": "debit",
     "items": [
         {
             "product_id": "architecto",
@@ -2726,10 +2607,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="payment_method"                data-endpoint="POSTapi-pos-sales"
-               value="cash"
+               value="debit"
                data-component="body">
     <br>
-<p>Example: <code>cash</code></p>
+<p>Example: <code>debit</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>cash</code></li> <li><code>credit</code></li> <li><code>debit</code></li></ul>
         </div>
@@ -2861,7 +2742,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -2985,7 +2866,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -3229,7 +3110,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -3333,8 +3214,8 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"start_date\": \"2025-03-14T22:50:06\",
-    \"end_date\": \"2051-04-07\",
+    \"start_date\": \"2025-03-15T15:58:48\",
+    \"end_date\": \"2051-04-08\",
     \"register_number\": \"architecto\",
     \"department\": \"architecto\"
 }"
@@ -3352,8 +3233,8 @@ const headers = {
 };
 
 let body = {
-    "start_date": "2025-03-14T22:50:06",
-    "end_date": "2051-04-07",
+    "start_date": "2025-03-15T15:58:48",
+    "end_date": "2051-04-08",
     "register_number": "architecto",
     "department": "architecto"
 };
@@ -3444,10 +3325,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="start_date"                data-endpoint="POSTapi-transactions-report"
-               value="2025-03-14T22:50:06"
+               value="2025-03-15T15:58:48"
                data-component="body">
     <br>
-<p>Must be a valid date. Example: <code>2025-03-14T22:50:06</code></p>
+<p>Must be a valid date. Example: <code>2025-03-15T15:58:48</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>end_date</code></b>&nbsp;&nbsp;
@@ -3455,10 +3336,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="end_date"                data-endpoint="POSTapi-transactions-report"
-               value="2051-04-07"
+               value="2051-04-08"
                data-component="body">
     <br>
-<p>Must be a valid date. Must be a date after or equal to <code>start_date</code>. Example: <code>2051-04-07</code></p>
+<p>Must be a valid date. Must be a date after or equal to <code>start_date</code>. Example: <code>2051-04-08</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>register_number</code></b>&nbsp;&nbsp;
@@ -3533,7 +3414,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -3657,7 +3538,7 @@ fetch(url, {
 
 <span id="example-responses-GETapi-transactions--transaction_id--receipt">
             <blockquote>
-            <p>Example response (404):</p>
+            <p>Example response (401):</p>
         </blockquote>
                 <details class="annotation">
             <summary style="cursor: pointer;">
@@ -3669,7 +3550,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;No query results for model [App\\Models\\Transaction] 16&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -3814,7 +3695,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -3950,7 +3831,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -4227,7 +4108,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -4333,7 +4214,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"website\": \"z\",
     \"source\": \"m\",
     \"industry\": \"i\",
-    \"status\": \"inactive\"
+    \"status\": \"active\"
 }"
 </code></pre></div>
 
@@ -4363,7 +4244,7 @@ let body = {
     "website": "z",
     "source": "m",
     "industry": "i",
-    "status": "inactive"
+    "status": "active"
 };
 
 fetch(url, {
@@ -4606,10 +4487,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="POSTapi-customers"
-               value="inactive"
+               value="active"
                data-component="body">
     <br>
-<p>Example: <code>inactive</code></p>
+<p>Example: <code>active</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>lead</code></li></ul>
         </div>
@@ -4664,7 +4545,7 @@ vary: Origin
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;API key is missing&quot;
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
 }</code>
  </pre>
     </span>
@@ -4781,7 +4662,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"website\": \"z\",
     \"source\": \"m\",
     \"industry\": \"i\",
-    \"status\": \"lead\"
+    \"status\": \"inactive\"
 }"
 </code></pre></div>
 
@@ -4810,7 +4691,7 @@ let body = {
     "website": "z",
     "source": "m",
     "industry": "i",
-    "status": "lead"
+    "status": "inactive"
 };
 
 fetch(url, {
@@ -5069,36 +4950,36 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="PUTapi-customers--id-"
-               value="lead"
+               value="inactive"
                data-component="body">
     <br>
-<p>Example: <code>lead</code></p>
+<p>Example: <code>inactive</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>lead</code></li></ul>
         </div>
         </form>
 
-                    <h2 id="endpoints-GETapi-admin-api-keys">GET api/admin/api-keys</h2>
+                    <h2 id="endpoints-POSTapi-register-status">Update the register status.</h2>
 
 <p>
 </p>
 
 
 
-<span id="example-requests-GETapi-admin-api-keys">
+<span id="example-requests-POSTapi-register-status">
 <blockquote>Example request:</blockquote>
 
 
 <div class="bash-example">
-    <pre><code class="language-bash">curl --request GET \
-    --get "http://laravel-app.test/api/admin/api-keys" \
+    <pre><code class="language-bash">curl --request POST \
+    "http://laravel-app.test/api/register/status" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/admin/api-keys"
+    "http://laravel-app.test/api/register/status"
 );
 
 const headers = {
@@ -5107,75 +4988,59 @@ const headers = {
 };
 
 fetch(url, {
-    method: "GET",
+    method: "POST",
     headers,
 }).then(response =&gt; response.json());</code></pre></div>
 
 </span>
 
-<span id="example-responses-GETapi-admin-api-keys">
-            <blockquote>
-            <p>Example response (401):</p>
-        </blockquote>
-                <details class="annotation">
-            <summary style="cursor: pointer;">
-                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
-            </summary>
-            <pre><code class="language-http">cache-control: no-cache, private
-content-type: application/json
-vary: Origin
- </code></pre></details>         <pre>
-
-<code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;Unauthenticated.&quot;
-}</code>
- </pre>
-    </span>
-<span id="execution-results-GETapi-admin-api-keys" hidden>
+<span id="example-responses-POSTapi-register-status">
+</span>
+<span id="execution-results-POSTapi-register-status" hidden>
     <blockquote>Received response<span
-                id="execution-response-status-GETapi-admin-api-keys"></span>:
+                id="execution-response-status-POSTapi-register-status"></span>:
     </blockquote>
-    <pre class="json"><code id="execution-response-content-GETapi-admin-api-keys"
+    <pre class="json"><code id="execution-response-content-POSTapi-register-status"
       data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
 </span>
-<span id="execution-error-GETapi-admin-api-keys" hidden>
+<span id="execution-error-POSTapi-register-status" hidden>
     <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-GETapi-admin-api-keys">
+    <pre><code id="execution-error-message-POSTapi-register-status">
 
 Tip: Check that you&#039;re properly connected to the network.
 If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
 You can check the Dev Tools console for debugging information.</code></pre>
 </span>
-<form id="form-GETapi-admin-api-keys" data-method="GET"
-      data-path="api/admin/api-keys"
+<form id="form-POSTapi-register-status" data-method="POST"
+      data-path="api/register/status"
       data-authed="0"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('GETapi-admin-api-keys', this);">
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-register-status', this);">
     <h3>
         Request&nbsp;&nbsp;&nbsp;
                     <button type="button"
                     style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-GETapi-admin-api-keys"
-                    onclick="tryItOut('GETapi-admin-api-keys');">Try it out ⚡
+                    id="btn-tryout-POSTapi-register-status"
+                    onclick="tryItOut('POSTapi-register-status');">Try it out ⚡
             </button>
             <button type="button"
                     style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-GETapi-admin-api-keys"
-                    onclick="cancelTryOut('GETapi-admin-api-keys');" hidden>Cancel 🛑
+                    id="btn-canceltryout-POSTapi-register-status"
+                    onclick="cancelTryOut('POSTapi-register-status');" hidden>Cancel 🛑
             </button>&nbsp;&nbsp;
             <button type="submit"
                     style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-GETapi-admin-api-keys"
+                    id="btn-executetryout-POSTapi-register-status"
                     data-initial-text="Send Request 💥"
                     data-loading-text="⏱ Sending..."
                     hidden>Send Request 💥
             </button>
             </h3>
             <p>
-            <small class="badge badge-green">GET</small>
-            <b><code>api/admin/api-keys</code></b>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/register/status</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
                                 <div style="padding-left: 28px; clear: unset;">
@@ -5183,7 +5048,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="GETapi-admin-api-keys"
+                              name="Content-Type"                data-endpoint="POSTapi-register-status"
                value="application/json"
                data-component="header">
     <br>
@@ -5194,7 +5059,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="GETapi-admin-api-keys"
+                              name="Accept"                data-endpoint="POSTapi-register-status"
                value="application/json"
                data-component="header">
     <br>
@@ -5202,182 +5067,27 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-POSTapi-admin-api-keys">POST api/admin/api-keys</h2>
+                    <h2 id="endpoints-GETapi-register-settings">Get the register settings.</h2>
 
 <p>
 </p>
 
 
 
-<span id="example-requests-POSTapi-admin-api-keys">
-<blockquote>Example request:</blockquote>
-
-
-<div class="bash-example">
-    <pre><code class="language-bash">curl --request POST \
-    "http://laravel-app.test/api/admin/api-keys" \
-    --header "Content-Type: application/json" \
-    --header "Accept: application/json" \
-    --data "{
-    \"name\": \"b\",
-    \"device_info\": \"architecto\",
-    \"expires_at\": \"2051-04-08\"
-}"
-</code></pre></div>
-
-
-<div class="javascript-example">
-    <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/admin/api-keys"
-);
-
-const headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-};
-
-let body = {
-    "name": "b",
-    "device_info": "architecto",
-    "expires_at": "2051-04-08"
-};
-
-fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-}).then(response =&gt; response.json());</code></pre></div>
-
-</span>
-
-<span id="example-responses-POSTapi-admin-api-keys">
-</span>
-<span id="execution-results-POSTapi-admin-api-keys" hidden>
-    <blockquote>Received response<span
-                id="execution-response-status-POSTapi-admin-api-keys"></span>:
-    </blockquote>
-    <pre class="json"><code id="execution-response-content-POSTapi-admin-api-keys"
-      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
-</span>
-<span id="execution-error-POSTapi-admin-api-keys" hidden>
-    <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-POSTapi-admin-api-keys">
-
-Tip: Check that you&#039;re properly connected to the network.
-If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
-You can check the Dev Tools console for debugging information.</code></pre>
-</span>
-<form id="form-POSTapi-admin-api-keys" data-method="POST"
-      data-path="api/admin/api-keys"
-      data-authed="0"
-      data-hasfiles="0"
-      data-isarraybody="0"
-      autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('POSTapi-admin-api-keys', this);">
-    <h3>
-        Request&nbsp;&nbsp;&nbsp;
-                    <button type="button"
-                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-POSTapi-admin-api-keys"
-                    onclick="tryItOut('POSTapi-admin-api-keys');">Try it out ⚡
-            </button>
-            <button type="button"
-                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-POSTapi-admin-api-keys"
-                    onclick="cancelTryOut('POSTapi-admin-api-keys');" hidden>Cancel 🛑
-            </button>&nbsp;&nbsp;
-            <button type="submit"
-                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-POSTapi-admin-api-keys"
-                    data-initial-text="Send Request 💥"
-                    data-loading-text="⏱ Sending..."
-                    hidden>Send Request 💥
-            </button>
-            </h3>
-            <p>
-            <small class="badge badge-black">POST</small>
-            <b><code>api/admin/api-keys</code></b>
-        </p>
-                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="POSTapi-admin-api-keys"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="POSTapi-admin-api-keys"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
-        <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>name</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="name"                data-endpoint="POSTapi-admin-api-keys"
-               value="b"
-               data-component="body">
-    <br>
-<p>Must not be greater than 255 characters. Example: <code>b</code></p>
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>device_info</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="text" style="display: none"
-                              name="device_info"                data-endpoint="POSTapi-admin-api-keys"
-               value="architecto"
-               data-component="body">
-    <br>
-<p>Example: <code>architecto</code></p>
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>expires_at</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="text" style="display: none"
-                              name="expires_at"                data-endpoint="POSTapi-admin-api-keys"
-               value="2051-04-08"
-               data-component="body">
-    <br>
-<p>Must be a valid date. Must be a date after <code>now</code>. Example: <code>2051-04-08</code></p>
-        </div>
-        </form>
-
-                    <h2 id="endpoints-GETapi-admin-api-keys--id-">GET api/admin/api-keys/{id}</h2>
-
-<p>
-</p>
-
-
-
-<span id="example-requests-GETapi-admin-api-keys--id-">
+<span id="example-requests-GETapi-register-settings">
 <blockquote>Example request:</blockquote>
 
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://laravel-app.test/api/admin/api-keys/architecto" \
+    --get "http://laravel-app.test/api/register/settings" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/admin/api-keys/architecto"
+    "http://laravel-app.test/api/register/settings"
 );
 
 const headers = {
@@ -5392,7 +5102,7 @@ fetch(url, {
 
 </span>
 
-<span id="example-responses-GETapi-admin-api-keys--id-">
+<span id="example-responses-GETapi-register-settings">
             <blockquote>
             <p>Example response (401):</p>
         </blockquote>
@@ -5410,43 +5120,43 @@ vary: Origin
 }</code>
  </pre>
     </span>
-<span id="execution-results-GETapi-admin-api-keys--id-" hidden>
+<span id="execution-results-GETapi-register-settings" hidden>
     <blockquote>Received response<span
-                id="execution-response-status-GETapi-admin-api-keys--id-"></span>:
+                id="execution-response-status-GETapi-register-settings"></span>:
     </blockquote>
-    <pre class="json"><code id="execution-response-content-GETapi-admin-api-keys--id-"
+    <pre class="json"><code id="execution-response-content-GETapi-register-settings"
       data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
 </span>
-<span id="execution-error-GETapi-admin-api-keys--id-" hidden>
+<span id="execution-error-GETapi-register-settings" hidden>
     <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-GETapi-admin-api-keys--id-">
+    <pre><code id="execution-error-message-GETapi-register-settings">
 
 Tip: Check that you&#039;re properly connected to the network.
 If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
 You can check the Dev Tools console for debugging information.</code></pre>
 </span>
-<form id="form-GETapi-admin-api-keys--id-" data-method="GET"
-      data-path="api/admin/api-keys/{id}"
+<form id="form-GETapi-register-settings" data-method="GET"
+      data-path="api/register/settings"
       data-authed="0"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('GETapi-admin-api-keys--id-', this);">
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-register-settings', this);">
     <h3>
         Request&nbsp;&nbsp;&nbsp;
                     <button type="button"
                     style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-GETapi-admin-api-keys--id-"
-                    onclick="tryItOut('GETapi-admin-api-keys--id-');">Try it out ⚡
+                    id="btn-tryout-GETapi-register-settings"
+                    onclick="tryItOut('GETapi-register-settings');">Try it out ⚡
             </button>
             <button type="button"
                     style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-GETapi-admin-api-keys--id-"
-                    onclick="cancelTryOut('GETapi-admin-api-keys--id-');" hidden>Cancel 🛑
+                    id="btn-canceltryout-GETapi-register-settings"
+                    onclick="cancelTryOut('GETapi-register-settings');" hidden>Cancel 🛑
             </button>&nbsp;&nbsp;
             <button type="submit"
                     style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-GETapi-admin-api-keys--id-"
+                    id="btn-executetryout-GETapi-register-settings"
                     data-initial-text="Send Request 💥"
                     data-loading-text="⏱ Sending..."
                     hidden>Send Request 💥
@@ -5454,7 +5164,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </h3>
             <p>
             <small class="badge badge-green">GET</small>
-            <b><code>api/admin/api-keys/{id}</code></b>
+            <b><code>api/register/settings</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
                                 <div style="padding-left: 28px; clear: unset;">
@@ -5462,7 +5172,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="GETapi-admin-api-keys--id-"
+                              name="Content-Type"                data-endpoint="GETapi-register-settings"
                value="application/json"
                data-component="header">
     <br>
@@ -5473,53 +5183,40 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="GETapi-admin-api-keys--id-"
+                              name="Accept"                data-endpoint="GETapi-register-settings"
                value="application/json"
                data-component="header">
     <br>
 <p>Example: <code>application/json</code></p>
             </div>
-                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
-                    <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>id</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="id"                data-endpoint="GETapi-admin-api-keys--id-"
-               value="architecto"
-               data-component="url">
-    <br>
-<p>The ID of the api key. Example: <code>architecto</code></p>
-            </div>
-                    </form>
+                        </form>
 
-                    <h2 id="endpoints-PUTapi-admin-api-keys--id-">PUT api/admin/api-keys/{id}</h2>
+                    <h2 id="endpoints-POSTapi-register-login">Login to a register.</h2>
 
 <p>
 </p>
 
 
 
-<span id="example-requests-PUTapi-admin-api-keys--id-">
+<span id="example-requests-POSTapi-register-login">
 <blockquote>Example request:</blockquote>
 
 
 <div class="bash-example">
-    <pre><code class="language-bash">curl --request PUT \
-    "http://laravel-app.test/api/admin/api-keys/architecto" \
+    <pre><code class="language-bash">curl --request POST \
+    "http://laravel-app.test/api/register/login" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"name\": \"b\",
-    \"expires_at\": \"2051-04-08\",
-    \"is_active\": false
+    \"user_id\": \"architecto\",
+    \"pin\": \"architecto\"
 }"
 </code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/admin/api-keys/architecto"
+    "http://laravel-app.test/api/register/login"
 );
 
 const headers = {
@@ -5528,66 +5225,65 @@ const headers = {
 };
 
 let body = {
-    "name": "b",
-    "expires_at": "2051-04-08",
-    "is_active": false
+    "user_id": "architecto",
+    "pin": "architecto"
 };
 
 fetch(url, {
-    method: "PUT",
+    method: "POST",
     headers,
     body: JSON.stringify(body),
 }).then(response =&gt; response.json());</code></pre></div>
 
 </span>
 
-<span id="example-responses-PUTapi-admin-api-keys--id-">
+<span id="example-responses-POSTapi-register-login">
 </span>
-<span id="execution-results-PUTapi-admin-api-keys--id-" hidden>
+<span id="execution-results-POSTapi-register-login" hidden>
     <blockquote>Received response<span
-                id="execution-response-status-PUTapi-admin-api-keys--id-"></span>:
+                id="execution-response-status-POSTapi-register-login"></span>:
     </blockquote>
-    <pre class="json"><code id="execution-response-content-PUTapi-admin-api-keys--id-"
+    <pre class="json"><code id="execution-response-content-POSTapi-register-login"
       data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
 </span>
-<span id="execution-error-PUTapi-admin-api-keys--id-" hidden>
+<span id="execution-error-POSTapi-register-login" hidden>
     <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-PUTapi-admin-api-keys--id-">
+    <pre><code id="execution-error-message-POSTapi-register-login">
 
 Tip: Check that you&#039;re properly connected to the network.
 If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
 You can check the Dev Tools console for debugging information.</code></pre>
 </span>
-<form id="form-PUTapi-admin-api-keys--id-" data-method="PUT"
-      data-path="api/admin/api-keys/{id}"
+<form id="form-POSTapi-register-login" data-method="POST"
+      data-path="api/register/login"
       data-authed="0"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('PUTapi-admin-api-keys--id-', this);">
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-register-login', this);">
     <h3>
         Request&nbsp;&nbsp;&nbsp;
                     <button type="button"
                     style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-PUTapi-admin-api-keys--id-"
-                    onclick="tryItOut('PUTapi-admin-api-keys--id-');">Try it out ⚡
+                    id="btn-tryout-POSTapi-register-login"
+                    onclick="tryItOut('POSTapi-register-login');">Try it out ⚡
             </button>
             <button type="button"
                     style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-PUTapi-admin-api-keys--id-"
-                    onclick="cancelTryOut('PUTapi-admin-api-keys--id-');" hidden>Cancel 🛑
+                    id="btn-canceltryout-POSTapi-register-login"
+                    onclick="cancelTryOut('POSTapi-register-login');" hidden>Cancel 🛑
             </button>&nbsp;&nbsp;
             <button type="submit"
                     style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-PUTapi-admin-api-keys--id-"
+                    id="btn-executetryout-POSTapi-register-login"
                     data-initial-text="Send Request 💥"
                     data-loading-text="⏱ Sending..."
                     hidden>Send Request 💥
             </button>
             </h3>
             <p>
-            <small class="badge badge-darkblue">PUT</small>
-            <b><code>api/admin/api-keys/{id}</code></b>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/register/login</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
                                 <div style="padding-left: 28px; clear: unset;">
@@ -5595,7 +5291,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="PUTapi-admin-api-keys--id-"
+                              name="Content-Type"                data-endpoint="POSTapi-register-login"
                value="application/json"
                data-component="header">
     <br>
@@ -5606,211 +5302,58 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="PUTapi-admin-api-keys--id-"
+                              name="Accept"                data-endpoint="POSTapi-register-login"
                value="application/json"
                data-component="header">
     <br>
 <p>Example: <code>application/json</code></p>
             </div>
-                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
-                    <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>id</code></b>&nbsp;&nbsp;
+                                <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>user_id</code></b>&nbsp;&nbsp;
 <small>string</small>&nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="id"                data-endpoint="PUTapi-admin-api-keys--id-"
+                              name="user_id"                data-endpoint="POSTapi-register-login"
                value="architecto"
-               data-component="url">
-    <br>
-<p>The ID of the api key. Example: <code>architecto</code></p>
-            </div>
-                            <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
-        <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>name</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="text" style="display: none"
-                              name="name"                data-endpoint="PUTapi-admin-api-keys--id-"
-               value="b"
                data-component="body">
     <br>
-<p>Must not be greater than 255 characters. Example: <code>b</code></p>
+<p>The <code>id</code> of an existing record in the users table. Example: <code>architecto</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>expires_at</code></b>&nbsp;&nbsp;
+            <b style="line-height: 2;"><code>pin</code></b>&nbsp;&nbsp;
 <small>string</small>&nbsp;
-<i>optional</i> &nbsp;
+ &nbsp;
                 <input type="text" style="display: none"
-                              name="expires_at"                data-endpoint="PUTapi-admin-api-keys--id-"
-               value="2051-04-08"
+                              name="pin"                data-endpoint="POSTapi-register-login"
+               value="architecto"
                data-component="body">
     <br>
-<p>Must be a valid date. Must be a date after <code>now</code>. Example: <code>2051-04-08</code></p>
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>is_active</code></b>&nbsp;&nbsp;
-<small>boolean</small>&nbsp;
-<i>optional</i> &nbsp;
-                <label data-endpoint="PUTapi-admin-api-keys--id-" style="display: none">
-            <input type="radio" name="is_active"
-                   value="true"
-                   data-endpoint="PUTapi-admin-api-keys--id-"
-                   data-component="body"             >
-            <code>true</code>
-        </label>
-        <label data-endpoint="PUTapi-admin-api-keys--id-" style="display: none">
-            <input type="radio" name="is_active"
-                   value="false"
-                   data-endpoint="PUTapi-admin-api-keys--id-"
-                   data-component="body"             >
-            <code>false</code>
-        </label>
-    <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>architecto</code></p>
         </div>
         </form>
 
-                    <h2 id="endpoints-DELETEapi-admin-api-keys--id-">DELETE api/admin/api-keys/{id}</h2>
+                    <h2 id="endpoints-POSTapi-register-logout">Logout from register.</h2>
 
 <p>
 </p>
 
 
 
-<span id="example-requests-DELETEapi-admin-api-keys--id-">
-<blockquote>Example request:</blockquote>
-
-
-<div class="bash-example">
-    <pre><code class="language-bash">curl --request DELETE \
-    "http://laravel-app.test/api/admin/api-keys/architecto" \
-    --header "Content-Type: application/json" \
-    --header "Accept: application/json"</code></pre></div>
-
-
-<div class="javascript-example">
-    <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/admin/api-keys/architecto"
-);
-
-const headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-};
-
-fetch(url, {
-    method: "DELETE",
-    headers,
-}).then(response =&gt; response.json());</code></pre></div>
-
-</span>
-
-<span id="example-responses-DELETEapi-admin-api-keys--id-">
-</span>
-<span id="execution-results-DELETEapi-admin-api-keys--id-" hidden>
-    <blockquote>Received response<span
-                id="execution-response-status-DELETEapi-admin-api-keys--id-"></span>:
-    </blockquote>
-    <pre class="json"><code id="execution-response-content-DELETEapi-admin-api-keys--id-"
-      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
-</span>
-<span id="execution-error-DELETEapi-admin-api-keys--id-" hidden>
-    <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-DELETEapi-admin-api-keys--id-">
-
-Tip: Check that you&#039;re properly connected to the network.
-If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
-You can check the Dev Tools console for debugging information.</code></pre>
-</span>
-<form id="form-DELETEapi-admin-api-keys--id-" data-method="DELETE"
-      data-path="api/admin/api-keys/{id}"
-      data-authed="0"
-      data-hasfiles="0"
-      data-isarraybody="0"
-      autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('DELETEapi-admin-api-keys--id-', this);">
-    <h3>
-        Request&nbsp;&nbsp;&nbsp;
-                    <button type="button"
-                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-DELETEapi-admin-api-keys--id-"
-                    onclick="tryItOut('DELETEapi-admin-api-keys--id-');">Try it out ⚡
-            </button>
-            <button type="button"
-                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-DELETEapi-admin-api-keys--id-"
-                    onclick="cancelTryOut('DELETEapi-admin-api-keys--id-');" hidden>Cancel 🛑
-            </button>&nbsp;&nbsp;
-            <button type="submit"
-                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-DELETEapi-admin-api-keys--id-"
-                    data-initial-text="Send Request 💥"
-                    data-loading-text="⏱ Sending..."
-                    hidden>Send Request 💥
-            </button>
-            </h3>
-            <p>
-            <small class="badge badge-red">DELETE</small>
-            <b><code>api/admin/api-keys/{id}</code></b>
-        </p>
-                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="DELETEapi-admin-api-keys--id-"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="DELETEapi-admin-api-keys--id-"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
-                    <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>id</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="id"                data-endpoint="DELETEapi-admin-api-keys--id-"
-               value="architecto"
-               data-component="url">
-    <br>
-<p>The ID of the api key. Example: <code>architecto</code></p>
-            </div>
-                    </form>
-
-                    <h2 id="endpoints-POSTapi-admin-api-keys--id--revoke">POST api/admin/api-keys/{id}/revoke</h2>
-
-<p>
-</p>
-
-
-
-<span id="example-requests-POSTapi-admin-api-keys--id--revoke">
+<span id="example-requests-POSTapi-register-logout">
 <blockquote>Example request:</blockquote>
 
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "http://laravel-app.test/api/admin/api-keys/architecto/revoke" \
+    "http://laravel-app.test/api/register/logout" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-app.test/api/admin/api-keys/architecto/revoke"
+    "http://laravel-app.test/api/register/logout"
 );
 
 const headers = {
@@ -5825,45 +5368,45 @@ fetch(url, {
 
 </span>
 
-<span id="example-responses-POSTapi-admin-api-keys--id--revoke">
+<span id="example-responses-POSTapi-register-logout">
 </span>
-<span id="execution-results-POSTapi-admin-api-keys--id--revoke" hidden>
+<span id="execution-results-POSTapi-register-logout" hidden>
     <blockquote>Received response<span
-                id="execution-response-status-POSTapi-admin-api-keys--id--revoke"></span>:
+                id="execution-response-status-POSTapi-register-logout"></span>:
     </blockquote>
-    <pre class="json"><code id="execution-response-content-POSTapi-admin-api-keys--id--revoke"
+    <pre class="json"><code id="execution-response-content-POSTapi-register-logout"
       data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
 </span>
-<span id="execution-error-POSTapi-admin-api-keys--id--revoke" hidden>
+<span id="execution-error-POSTapi-register-logout" hidden>
     <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-POSTapi-admin-api-keys--id--revoke">
+    <pre><code id="execution-error-message-POSTapi-register-logout">
 
 Tip: Check that you&#039;re properly connected to the network.
 If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
 You can check the Dev Tools console for debugging information.</code></pre>
 </span>
-<form id="form-POSTapi-admin-api-keys--id--revoke" data-method="POST"
-      data-path="api/admin/api-keys/{id}/revoke"
+<form id="form-POSTapi-register-logout" data-method="POST"
+      data-path="api/register/logout"
       data-authed="0"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('POSTapi-admin-api-keys--id--revoke', this);">
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-register-logout', this);">
     <h3>
         Request&nbsp;&nbsp;&nbsp;
                     <button type="button"
                     style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-POSTapi-admin-api-keys--id--revoke"
-                    onclick="tryItOut('POSTapi-admin-api-keys--id--revoke');">Try it out ⚡
+                    id="btn-tryout-POSTapi-register-logout"
+                    onclick="tryItOut('POSTapi-register-logout');">Try it out ⚡
             </button>
             <button type="button"
                     style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-POSTapi-admin-api-keys--id--revoke"
-                    onclick="cancelTryOut('POSTapi-admin-api-keys--id--revoke');" hidden>Cancel 🛑
+                    id="btn-canceltryout-POSTapi-register-logout"
+                    onclick="cancelTryOut('POSTapi-register-logout');" hidden>Cancel 🛑
             </button>&nbsp;&nbsp;
             <button type="submit"
                     style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-POSTapi-admin-api-keys--id--revoke"
+                    id="btn-executetryout-POSTapi-register-logout"
                     data-initial-text="Send Request 💥"
                     data-loading-text="⏱ Sending..."
                     hidden>Send Request 💥
@@ -5871,7 +5414,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </h3>
             <p>
             <small class="badge badge-black">POST</small>
-            <b><code>api/admin/api-keys/{id}/revoke</code></b>
+            <b><code>api/register/logout</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
                                 <div style="padding-left: 28px; clear: unset;">
@@ -5879,7 +5422,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="POSTapi-admin-api-keys--id--revoke"
+                              name="Content-Type"                data-endpoint="POSTapi-register-logout"
                value="application/json"
                data-component="header">
     <br>
@@ -5890,25 +5433,765 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="POSTapi-admin-api-keys--id--revoke"
+                              name="Accept"                data-endpoint="POSTapi-register-logout"
                value="application/json"
                data-component="header">
     <br>
 <p>Example: <code>application/json</code></p>
             </div>
-                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
-                    <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>id</code></b>&nbsp;&nbsp;
+                        </form>
+
+                    <h2 id="endpoints-POSTapi-register-cash">Update cash amount in register.</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-POSTapi-register-cash">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://laravel-app.test/api/register/cash" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --data "{
+    \"amount\": 27,
+    \"type\": \"add\",
+    \"note\": \"architecto\"
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://laravel-app.test/api/register/cash"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+let body = {
+    "amount": 27,
+    "type": "add",
+    "note": "architecto"
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-register-cash">
+</span>
+<span id="execution-results-POSTapi-register-cash" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-register-cash"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-register-cash"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-register-cash" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-register-cash">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-register-cash" data-method="POST"
+      data-path="api/register/cash"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-register-cash', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-register-cash"
+                    onclick="tryItOut('POSTapi-register-cash');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-register-cash"
+                    onclick="cancelTryOut('POSTapi-register-cash');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-register-cash"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/register/cash</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-register-cash"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-register-cash"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>amount</code></b>&nbsp;&nbsp;
+<small>number</small>&nbsp;
+ &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="amount"                data-endpoint="POSTapi-register-cash"
+               value="27"
+               data-component="body">
+    <br>
+<p>Must be at least 0. Example: <code>27</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>type</code></b>&nbsp;&nbsp;
 <small>string</small>&nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="id"                data-endpoint="POSTapi-admin-api-keys--id--revoke"
-               value="architecto"
-               data-component="url">
+                              name="type"                data-endpoint="POSTapi-register-cash"
+               value="add"
+               data-component="body">
     <br>
-<p>The ID of the api key. Example: <code>architecto</code></p>
+<p>Example: <code>add</code></p>
+Must be one of:
+<ul style="list-style-type: square;"><li><code>add</code></li> <li><code>remove</code></li> <li><code>set</code></li></ul>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>note</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="note"                data-endpoint="POSTapi-register-cash"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>Example: <code>architecto</code></p>
+        </div>
+        </form>
+
+                    <h2 id="endpoints-GETapi-register-transactions">Get transactions for this register.</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-GETapi-register-transactions">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://laravel-app.test/api/register/transactions" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://laravel-app.test/api/register/transactions"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-register-transactions">
+            <blockquote>
+            <p>Example response (401):</p>
+        </blockquote>
+                <details class="annotation">
+            <summary style="cursor: pointer;">
+                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
+            </summary>
+            <pre><code class="language-http">cache-control: no-cache, private
+content-type: application/json
+vary: Origin
+ </code></pre></details>         <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-register-transactions" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-register-transactions"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-register-transactions"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-register-transactions" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-register-transactions">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-register-transactions" data-method="GET"
+      data-path="api/register/transactions"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-register-transactions', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-register-transactions"
+                    onclick="tryItOut('GETapi-register-transactions');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-register-transactions"
+                    onclick="cancelTryOut('GETapi-register-transactions');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-register-transactions"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/register/transactions</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-register-transactions"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
             </div>
-                    </form>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-register-transactions"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        </form>
+
+                    <h2 id="endpoints-POSTapi-register-sales">Create a new sale transaction.</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-POSTapi-register-sales">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://laravel-app.test/api/register/sales" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --data "{
+    \"items\": [
+        {
+            \"product_id\": \"architecto\",
+            \"quantity\": 22,
+            \"price\": 84
+        }
+    ],
+    \"payment_method\": \"cash\",
+    \"notes\": \"b\",
+    \"tax_amount\": 39,
+    \"discount_amount\": 84
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://laravel-app.test/api/register/sales"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+let body = {
+    "items": [
+        {
+            "product_id": "architecto",
+            "quantity": 22,
+            "price": 84
+        }
+    ],
+    "payment_method": "cash",
+    "notes": "b",
+    "tax_amount": 39,
+    "discount_amount": 84
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-register-sales">
+</span>
+<span id="execution-results-POSTapi-register-sales" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-register-sales"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-register-sales"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-register-sales" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-register-sales">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-register-sales" data-method="POST"
+      data-path="api/register/sales"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-register-sales', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-register-sales"
+                    onclick="tryItOut('POSTapi-register-sales');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-register-sales"
+                    onclick="cancelTryOut('POSTapi-register-sales');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-register-sales"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/register/sales</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-register-sales"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-register-sales"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+        <details>
+            <summary style="padding-bottom: 10px;">
+                <b style="line-height: 2;"><code>items</code></b>&nbsp;&nbsp;
+<small>object[]</small>&nbsp;
+ &nbsp;
+<br>
+<p>Must have at least 1 items.</p>
+            </summary>
+                                                <div style="margin-left: 14px; clear: unset;">
+                        <b style="line-height: 2;"><code>product_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="items.0.product_id"                data-endpoint="POSTapi-register-sales"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>The <code>id</code> of an existing record in the products table. Example: <code>architecto</code></p>
+                    </div>
+                                                                <div style="margin-left: 14px; clear: unset;">
+                        <b style="line-height: 2;"><code>quantity</code></b>&nbsp;&nbsp;
+<small>number</small>&nbsp;
+ &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="items.0.quantity"                data-endpoint="POSTapi-register-sales"
+               value="22"
+               data-component="body">
+    <br>
+<p>Must be at least 1. Example: <code>22</code></p>
+                    </div>
+                                                                <div style="margin-left: 14px; clear: unset;">
+                        <b style="line-height: 2;"><code>price</code></b>&nbsp;&nbsp;
+<small>number</small>&nbsp;
+ &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="items.0.price"                data-endpoint="POSTapi-register-sales"
+               value="84"
+               data-component="body">
+    <br>
+<p>Must be at least 0. Example: <code>84</code></p>
+                    </div>
+                                    </details>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>payment_method</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="payment_method"                data-endpoint="POSTapi-register-sales"
+               value="cash"
+               data-component="body">
+    <br>
+<p>Example: <code>cash</code></p>
+Must be one of:
+<ul style="list-style-type: square;"><li><code>cash</code></li> <li><code>credit_card</code></li> <li><code>other</code></li></ul>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>customer_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="customer_id"                data-endpoint="POSTapi-register-sales"
+               value=""
+               data-component="body">
+    <br>
+<p>The <code>id</code> of an existing record in the customers table.</p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>notes</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="notes"                data-endpoint="POSTapi-register-sales"
+               value="b"
+               data-component="body">
+    <br>
+<p>Must not be greater than 500 characters. Example: <code>b</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>tax_amount</code></b>&nbsp;&nbsp;
+<small>number</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="tax_amount"                data-endpoint="POSTapi-register-sales"
+               value="39"
+               data-component="body">
+    <br>
+<p>Must be at least 0. Example: <code>39</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>discount_amount</code></b>&nbsp;&nbsp;
+<small>number</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="discount_amount"                data-endpoint="POSTapi-register-sales"
+               value="84"
+               data-component="body">
+    <br>
+<p>Must be at least 0. Example: <code>84</code></p>
+        </div>
+        </form>
+
+                    <h2 id="endpoints-GETapi-register-sales">Get sales for this register.</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-GETapi-register-sales">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://laravel-app.test/api/register/sales" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://laravel-app.test/api/register/sales"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-register-sales">
+            <blockquote>
+            <p>Example response (401):</p>
+        </blockquote>
+                <details class="annotation">
+            <summary style="cursor: pointer;">
+                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
+            </summary>
+            <pre><code class="language-http">cache-control: no-cache, private
+content-type: application/json
+vary: Origin
+ </code></pre></details>         <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-register-sales" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-register-sales"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-register-sales"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-register-sales" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-register-sales">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-register-sales" data-method="GET"
+      data-path="api/register/sales"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-register-sales', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-register-sales"
+                    onclick="tryItOut('GETapi-register-sales');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-register-sales"
+                    onclick="cancelTryOut('GETapi-register-sales');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-register-sales"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/register/sales</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-register-sales"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-register-sales"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        </form>
+
+                    <h2 id="endpoints-POSTapi-register-heartbeat">Log heartbeat from register.</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-POSTapi-register-heartbeat">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://laravel-app.test/api/register/heartbeat" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://laravel-app.test/api/register/heartbeat"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-register-heartbeat">
+</span>
+<span id="execution-results-POSTapi-register-heartbeat" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-register-heartbeat"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-register-heartbeat"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-register-heartbeat" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-register-heartbeat">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-register-heartbeat" data-method="POST"
+      data-path="api/register/heartbeat"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-register-heartbeat', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-register-heartbeat"
+                    onclick="tryItOut('POSTapi-register-heartbeat');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-register-heartbeat"
+                    onclick="cancelTryOut('POSTapi-register-heartbeat');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-register-heartbeat"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/register/heartbeat</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-register-heartbeat"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-register-heartbeat"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        </form>
 
             
 

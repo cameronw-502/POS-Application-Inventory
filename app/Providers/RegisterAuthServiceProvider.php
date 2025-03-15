@@ -8,7 +8,18 @@ use App\Auth\RegisterTokenGuard;
 
 class RegisterAuthServiceProvider extends ServiceProvider
 {
-    public function boot()
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
     {
         Auth::extend('register-token', function ($app, $name, array $config) {
             return new RegisterTokenGuard(

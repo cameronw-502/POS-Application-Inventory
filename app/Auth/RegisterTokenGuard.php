@@ -6,6 +6,7 @@ use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
 use App\Models\RegisterApiKey;
+use App\Models\Register;
 
 class RegisterTokenGuard implements Guard
 {
@@ -45,14 +46,25 @@ class RegisterTokenGuard implements Guard
     
     protected function getTokenForRequest()
     {
+        // Try to get from query parameter
         $token = $this->request->query($this->inputKey);
         
+        // Try to get from request body
         if (empty($token)) {
             $token = $this->request->input($this->inputKey);
         }
         
+        // Try to get from bearer token
         if (empty($token)) {
             $token = $this->request->bearerToken();
+        }
+        
+        // Try to get from Authorization: Register header
+        if (empty($token)) {
+            $header = $this->request->header('Authorization');
+            if (!empty($header) && str_starts_with($header, 'Register ')) {
+                $token = substr($header, 9);
+            }
         }
         
         return $token;

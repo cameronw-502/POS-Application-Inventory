@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Register API Tester</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                padding: 20px;
+                background-color: #f8f9fa;
+            }
+            .card {
+                margin-bottom: 20px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .response-container {
+                max-height: 400px;
+                overflow-y: auto;
+                background-color: #f8f9fa;
+                border-radius: 4px;
+                padding: 10px;
+                font-family: monospace;
+            }
+            .nav-tabs .nav-link.active {
+                font-weight: bold;
+                background-color: #e9ecef;
+            }
+            .endpoint-card {
+                border-left: 4px solid #0d6efd;
+            }
+            pre {
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+            .badge-method {
+                min-width: 80px;
+            }
+            .highlight {
+                animation: highlight 2s;
+            }
+            @keyframes highlight {
+                0% {
+                    background-color: #ffeeba;
+                }
+                100% {
+                    background-color: transparent;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <h1>Register API Test Client</h1>
+                    <p class="lead">
+                        Test your Register API endpoints with this interactive
+                        client
+                    </p>
+
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Connection Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="baseUrl" class="form-label"
+                                            >API Base URL</label
+                                        >
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="baseUrl"
+                                            value="http://localhost:8000/api"
+                                        />
+                                        <div class="form-text">
+                                            The base URL for your API (e.g.,
+                                            http://localhost:8000/api)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="apiKey" class="form-label"
+                                            >Register API Key</label
+                                        >
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="apiKey"
+                                            placeholder="reg_..."
+                                        />
+                                        <div class="form-text">
+                                            Your register API key used for
+                                            authentication
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button
+                                        id="pingApi"
+                                        class="btn btn-primary"
+                                    >
+                                        Test Connection
+                                    </button>
+                                    <span id="pingStatus" class="ms-3"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-tabs" id="apiTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button
+                                class="nav-link active"
+                                id="register-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#register-content"
+                                type="button"
+                            >
+                                Register Status
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button
+                                class="nav-link"
+                                id="session-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#session-content"
+                                type="button"
+                            >
+                                Session Management
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button
+                                class="nav-link"
+                                id="transactions-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#transactions-content"
+                                type="button"
+                            >
+                                Transactions
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button
+                                class="nav-link"
+                                id="cash-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#cash-content"
+                                type="button"
+                            >
+                                Cash Management
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button
+                                class="nav-link"
+                                id="pos-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#pos-content"
+                                type="button"
+                            >
+                                POS Operations
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="apiTabContent">
+                        <!-- Register Status Tab -->
+                        <div
+                            class="tab-pane fade show active"
+                            id="register-content"
+                            role="tabpanel"
+                        >
+                            <div class="card endpoint-card mt-3">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-success badge-method"
+                                            >GET</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/settings</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="getRegisterSettings()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Get register settings and information</p>
+                                    <div
+                                        class="response-container"
+                                        id="settings-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card endpoint-card">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-warning text-dark badge-method"
+                                            >POST</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/status</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="updateRegisterStatus()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Update register status</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select
+                                            class="form-select"
+                                            id="status-input"
+                                        >
+                                            <option value="online">
+                                                Online
+                                            </option>
+                                            <option value="offline">
+                                                Offline
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div
+                                        class="response-container"
+                                        id="status-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card endpoint-card">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-warning text-dark badge-method"
+                                            >POST</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/heartbeat</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="sendHeartbeat()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>
+                                        Send heartbeat to update last activity
+                                        timestamp
+                                    </p>
+                                    <div
+                                        class="response-container"
+                                        id="heartbeat-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card endpoint-card">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span class="badge bg-info badge-method"
+                                            >GET</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/debug-auth</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="testAuth()"
+                                    >
+                                        Debug Auth
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Debug authentication issues</p>
+                                    <div
+                                        class="response-container"
+                                        id="debug-auth-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Session Management Tab -->
+                        <div
+                            class="tab-pane fade"
+                            id="session-content"
+                            role="tabpanel"
+                        >
+                            <div class="card endpoint-card mt-3">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-warning text-dark badge-method"
+                                            >POST</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/login</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="loginToRegister()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Log in a user to the register</p>
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            >User ID</label
+                                        >
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="login-user-id"
+                                            value="1"
+                                        />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">PIN</label>
+                                        <input
+                                            type="password"
+                                            class="form-control"
+                                            id="login-pin"
+                                            value="1234"
+                                        />
+                                    </div>
+                                    <div
+                                        class="response-container"
+                                        id="login-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card endpoint-card">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-warning text-dark badge-method"
+                                            >POST</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/logout</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="logoutFromRegister()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>
+                                        Log out the current user from the
+                                        register
+                                    </p>
+                                    <div
+                                        class="response-container"
+                                        id="logout-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transactions Tab -->
+                        <div
+                            class="tab-pane fade"
+                            id="transactions-content"
+                            role="tabpanel"
+                        >
+                            <div class="card endpoint-card mt-3">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-success badge-method"
+                                            >GET</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/transactions</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="getTransactions()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Get transactions for this register</p>
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            >Date (YYYY-MM-DD)</label
+                                        >
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            id="transactions-date"
+                                        />
+                                    </div>
+                                    <div
+                                        class="response-container"
+                                        id="transactions-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cash Management Tab -->
+                        <div
+                            class="tab-pane fade"
+                            id="cash-content"
+                            role="tabpanel"
+                        >
+                            <div class="card endpoint-card mt-3">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-warning text-dark badge-method"
+                                            >POST</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/cash</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="updateCashAmount()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>
+                                        Update the cash amount in the register
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Amount</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            class="form-control"
+                                            id="cash-amount"
+                                            value="100.00"
+                                        />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Type</label>
+                                        <select
+                                            class="form-select"
+                                            id="cash-type"
+                                        >
+                                            <option value="add">
+                                                Add to current amount
+                                            </option>
+                                            <option value="remove">
+                                                Remove from current amount
+                                            </option>
+                                            <option value="set">
+                                                Set to specific amount
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Note</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="cash-note"
+                                            placeholder="Reason for adjustment"
+                                        />
+                                    </div>
+                                    <div
+                                        class="response-container"
+                                        id="cash-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POS Operations Tab -->
+                        <div
+                            class="tab-pane fade"
+                            id="pos-content"
+                            role="tabpanel"
+                        >
+                            <div class="card endpoint-card mt-3">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-success badge-method"
+                                            >GET</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/sales</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="getSales()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Get sales for this register</p>
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            >Date (YYYY-MM-DD)</label
+                                        >
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            id="sales-date"
+                                        />
+                                    </div>
+                                    <div
+                                        class="response-container"
+                                        id="sales-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card endpoint-card">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <span
+                                            class="badge bg-warning text-dark badge-method"
+                                            >POST</span
+                                        >
+                                        <span class="ms-2 fw-bold"
+                                            >/register/sales</span
+                                        >
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="createSale()"
+                                    >
+                                        Execute
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p>Create a new sale</p>
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            >Sale Items (JSON)</label
+                                        >
+                                        <textarea
+                                            class="form-control"
+                                            id="sale-items"
+                                            rows="5"
+                                        >
+[
+  {
+    "product_id": 1,
+    "quantity": 2,
+    "price": 10.99
+  },
+  {
+    "product_id": 2,
+    "quantity": 1,
+    "price": 5.99
+  }
+]</textarea
+                                        >
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            >Payment Method</label
+                                        >
+                                        <select
+                                            class="form-select"
+                                            id="payment-method"
+                                        >
+                                            <option value="cash">Cash</option>
+                                            <option value="credit_card">
+                                                Credit Card
+                                            </option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            >Customer ID (optional)</label
+                                        >
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="customer-id"
+                                            placeholder="Leave blank for walk-in customer"
+                                        />
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label"
+                                                    >Tax Amount</label
+                                                >
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    class="form-control"
+                                                    id="tax-amount"
+                                                    value="0.00"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label"
+                                                    >Discount Amount</label
+                                                >
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    class="form-control"
+                                                    id="discount-amount"
+                                                    value="0.00"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Notes</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="sale-notes"
+                                            placeholder="Sale notes"
+                                        />
+                                    </div>
+                                    <div
+                                        class="response-container"
+                                        id="create-sale-response"
+                                    >
+                                        <div class="text-muted">
+                                            Response will appear here
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Helper function to make API calls
+            async function callApi(endpoint, method = "GET", data = null) {
+                const baseUrl = document.getElementById("baseUrl").value;
+                const apiKey = document.getElementById("apiKey").value;
+
+                if (!baseUrl) {
+                    return { error: "Base URL is required" };
+                }
+
+                if (!apiKey && endpoint !== "/ping") {
+                    return { error: "API Key is required" };
+                }
+
+                const url = baseUrl + endpoint;
+                const headers = {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                };
+
+                if (apiKey) {
+                    headers["Authorization"] = `Register ${apiKey}`;
+                }
+
+                const options = {
+                    method,
+                    headers,
+                };
+
+                if (
+                    data &&
+                    (method === "POST" ||
+                        method === "PUT" ||
+                        method === "PATCH")
+                ) {
+                    options.body = JSON.stringify(data);
+                }
+
+                try {
+                    const response = await fetch(url, options);
+                    const responseData = await response.json();
+                    return {
+                        status: response.status,
+                        data: responseData,
+                    };
+                } catch (error) {
+                    return {
+                        error: error.message,
+                    };
+                }
+            }
+
+            // Helper function to update response containers
+            function updateResponse(containerId, response) {
+                const container = document.getElementById(containerId);
+                const formattedJson = JSON.stringify(response, null, 2);
+                container.innerHTML = `<pre>${formattedJson}</pre>`;
+                container.classList.add("highlight");
+                setTimeout(() => {
+                    container.classList.remove("highlight");
+                }, 2000);
+            }
+
+            // Test API connection
+            async function testConnection() {
+                const pingStatus = document.getElementById("pingStatus");
+                pingStatus.innerHTML =
+                    '<span class="text-info">Testing connection...</span>';
+
+                const response = await callApi("/ping");
+
+                if (response.error) {
+                    pingStatus.innerHTML = `<span class="text-danger">Connection failed: ${response.error}</span>`;
+                    return;
+                }
+
+                if (response.status === 200) {
+                    pingStatus.innerHTML =
+                        '<span class="text-success">Connection successful!</span>';
+                } else {
+                    pingStatus.innerHTML = `<span class="text-warning">Received unexpected status code: ${response.status}</span>`;
+                }
+            }
+
+            // Register API Endpoints
+            async function getRegisterSettings() {
+                const response = await callApi("/register/settings");
+                updateResponse("settings-response", response);
+            }
+
+            async function updateRegisterStatus() {
+                const status = document.getElementById("status-input").value;
+                const response = await callApi("/register/status", "POST", {
+                    status,
+                });
+                updateResponse("status-response", response);
+            }
+
+            async function sendHeartbeat() {
+                const response = await callApi("/register/heartbeat", "POST");
+                updateResponse("heartbeat-response", response);
+            }
+
+            // Session Management
+            async function loginToRegister() {
+                const userId = document.getElementById("login-user-id").value;
+                const pin = document.getElementById("login-pin").value;
+
+                const response = await callApi("/register/login", "POST", {
+                    user_id: userId,
+                    pin: pin,
+                });
+
+                updateResponse("login-response", response);
+            }
+
+            async function logoutFromRegister() {
+                const response = await callApi("/register/logout", "POST");
+                updateResponse("logout-response", response);
+            }
+
+            // Transactions
+            async function getTransactions() {
+                const date = document.getElementById("transactions-date").value;
+                let endpoint = "/register/transactions";
+
+                if (date) {
+                    endpoint += `?date=${date}`;
+                }
+
+                const response = await callApi(endpoint);
+                updateResponse("transactions-response", response);
+            }
+
+            // Cash Management
+            async function updateCashAmount() {
+                const amount = document.getElementById("cash-amount").value;
+                const type = document.getElementById("cash-type").value;
+                const note = document.getElementById("cash-note").value;
+
+                const response = await callApi("/register/cash", "POST", {
+                    amount: parseFloat(amount),
+                    type: type,
+                    note: note,
+                });
+
+                updateResponse("cash-response", response);
+            }
+
+            // POS Operations
+            async function getSales() {
+                const date = document.getElementById("sales-date").value;
+                let endpoint = "/register/sales";
+
+                if (date) {
+                    endpoint += `?date=${date}`;
+                }
+
+                const response = await callApi(endpoint);
+                updateResponse("sales-response", response);
+            }
+
+            async function createSale() {
+                let items;
+                try {
+                    items = JSON.parse(
+                        document.getElementById("sale-items").value
+                    );
+                } catch (e) {
+                    updateResponse("create-sale-response", {
+                        error: "Invalid JSON for items",
+                    });
+                    return;
+                }
+
+                const paymentMethod =
+                    document.getElementById("payment-method").value;
+                const customerId = document.getElementById("customer-id").value;
+                const taxAmount = document.getElementById("tax-amount").value;
+                const discountAmount =
+                    document.getElementById("discount-amount").value;
+                const notes = document.getElementById("sale-notes").value;
+
+                const saleData = {
+                    items: items,
+                    payment_method: paymentMethod,
+                    tax_amount: parseFloat(taxAmount),
+                    discount_amount: parseFloat(discountAmount),
+                    notes: notes,
+                };
+
+                if (customerId) {
+                    saleData.customer_id = parseInt(customerId);
+                }
+
+                const response = await callApi(
+                    "/register/sales",
+                    "POST",
+                    saleData
+                );
+                updateResponse("create-sale-response", response);
+            }
+
+            // Add this function to your test client's script section
+            async function testAuth() {
+                const baseUrl = document.getElementById("baseUrl").value;
+                const apiKey = document.getElementById("apiKey").value;
+
+                if (!baseUrl || !apiKey) {
+                    updateResponse("settings-response", {
+                        error: "Base URL and API key are required",
+                    });
+                    return;
+                }
+
+                const url = baseUrl + "/register/debug-auth";
+                const headers = {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: `Register ${apiKey}`,
+                    "X-API-KEY": apiKey, // Adding as alternative
+                };
+
+                try {
+                    const response = await fetch(url, {
+                        method: "GET",
+                        headers,
+                    });
+                    const data = await response.json();
+
+                    // Show both request and response
+                    updateResponse("settings-response", {
+                        request: {
+                            url,
+                            headers,
+                        },
+                        response: {
+                            status: response.status,
+                            data,
+                        },
+                    });
+                } catch (error) {
+                    updateResponse("settings-response", {
+                        error: error.message,
+                    });
+                }
+            }
+
+            // Set up event listeners
+            document.addEventListener("DOMContentLoaded", function () {
+                // Set today's date in date inputs
+                const today = new Date().toISOString().split("T")[0];
+                document.getElementById("transactions-date").value = today;
+                document.getElementById("sales-date").value = today;
+
+                // Setup ping test
+                document
+                    .getElementById("pingApi")
+                    .addEventListener("click", testConnection);
+            });
+        </script>
+    </body>
+</html>

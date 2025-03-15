@@ -105,45 +105,6 @@ endpoints:
     custom: []
   -
     httpMethods:
-      - GET
-    uri: api/test
-    metadata:
-      groupName: Endpoints
-      groupDescription: ''
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      custom: []
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters: []
-    cleanUrlParameters: []
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters: []
-    cleanBodyParameters: []
-    fileParameters: []
-    responses:
-      -
-        status: 200
-        content: '{"message":"API test endpoint reached successfully","timestamp":"2025-03-14 22:50:06"}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          vary: Origin
-        description: null
-        custom: []
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-    custom: []
-  -
-    httpMethods:
       - POST
     uri: api/logout
     metadata:
@@ -198,7 +159,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -237,7 +198,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -350,7 +311,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -505,7 +466,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -543,7 +504,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: loss
+        example: correction
         type: string
         enumValues:
           - purchase
@@ -606,7 +567,7 @@ endpoints:
         nullable: true
         custom: []
     cleanBodyParameters:
-      type: loss
+      type: correction
       notes: architecto
       items:
         -
@@ -658,7 +619,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -780,7 +741,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -913,7 +874,7 @@ endpoints:
         name: payment_method
         description: ''
         required: true
-        example: cash
+        example: debit
         type: string
         enumValues:
           - cash
@@ -994,7 +955,7 @@ endpoints:
         nullable: false
         custom: []
     cleanBodyParameters:
-      payment_method: cash
+      payment_method: debit
       items:
         -
           product_id: architecto
@@ -1037,7 +998,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1087,7 +1048,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1167,7 +1128,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1205,7 +1166,7 @@ endpoints:
         name: start_date
         description: 'Must be a valid date.'
         required: true
-        example: '2025-03-14T22:50:06'
+        example: '2025-03-15T15:58:48'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -1215,7 +1176,7 @@ endpoints:
         name: end_date
         description: 'Must be a valid date. Must be a date after or equal to <code>start_date</code>.'
         required: true
-        example: '2051-04-07'
+        example: '2051-04-08'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -1242,8 +1203,8 @@ endpoints:
         nullable: true
         custom: []
     cleanBodyParameters:
-      start_date: '2025-03-14T22:50:06'
-      end_date: '2051-04-07'
+      start_date: '2025-03-15T15:58:48'
+      end_date: '2051-04-08'
       register_number: architecto
       department: architecto
     fileParameters: []
@@ -1291,7 +1252,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1340,11 +1301,8 @@ endpoints:
     fileParameters: []
     responses:
       -
-        status: 404
-        content: |-
-          {
-              "message": "No query results for model [App\\Models\\Transaction] 16"
-          }
+        status: 401
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1394,7 +1352,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1444,7 +1402,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1535,7 +1493,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1713,7 +1671,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: active
         type: string
         enumValues:
           - active
@@ -1737,7 +1695,7 @@ endpoints:
       website: z
       source: m
       industry: i
-      status: inactive
+      status: active
     fileParameters: []
     responses: []
     responseFields: []
@@ -1783,7 +1741,7 @@ endpoints:
     responses:
       -
         status: 401
-        content: '{"message":"API key is missing"}'
+        content: '{"message":"Unauthenticated."}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -1973,7 +1931,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: lead
+        example: inactive
         type: string
         enumValues:
           - active
@@ -1996,7 +1954,37 @@ endpoints:
       website: z
       source: m
       industry: i
-      status: lead
+      status: inactive
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+    custom: []
+  -
+    httpMethods:
+      - POST
+    uri: api/register/status
+    metadata:
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Update the register status.'
+      description: ''
+      authenticated: false
+      custom: []
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
     fileParameters: []
     responses: []
     responseFields: []
@@ -2008,13 +1996,13 @@ endpoints:
   -
     httpMethods:
       - GET
-    uri: api/admin/api-keys
+    uri: api/register/settings
     metadata:
       groupName: Endpoints
       groupDescription: ''
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Get the register settings.'
       description: ''
       authenticated: false
       custom: []
@@ -2047,13 +2035,13 @@ endpoints:
   -
     httpMethods:
       - POST
-    uri: api/admin/api-keys
+    uri: api/register/login
     metadata:
       groupName: Endpoints
       groupDescription: ''
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Login to a register.'
       description: ''
       authenticated: false
       custom: []
@@ -2065,18 +2053,113 @@ endpoints:
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters:
-      name:
-        name: name
-        description: 'Must not be greater than 255 characters.'
+      user_id:
+        name: user_id
+        description: 'The <code>id</code> of an existing record in the users table.'
         required: true
-        example: b
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         custom: []
-      device_info:
-        name: device_info
+      pin:
+        name: pin
+        description: ''
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        custom: []
+    cleanBodyParameters:
+      user_id: architecto
+      pin: architecto
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+    custom: []
+  -
+    httpMethods:
+      - POST
+    uri: api/register/logout
+    metadata:
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Logout from register.'
+      description: ''
+      authenticated: false
+      custom: []
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+    custom: []
+  -
+    httpMethods:
+      - POST
+    uri: api/register/cash
+    metadata:
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Update cash amount in register.'
+      description: ''
+      authenticated: false
+      custom: []
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      amount:
+        name: amount
+        description: 'Must be at least 0.'
+        required: true
+        example: 27
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        custom: []
+      type:
+        name: type
+        description: ''
+        required: true
+        example: add
+        type: string
+        enumValues:
+          - add
+          - remove
+          - set
+        exampleWasSpecified: false
+        nullable: false
+        custom: []
+      note:
+        name: note
         description: ''
         required: false
         example: architecto
@@ -2085,20 +2168,10 @@ endpoints:
         exampleWasSpecified: false
         nullable: true
         custom: []
-      expires_at:
-        name: expires_at
-        description: 'Must be a valid date. Must be a date after <code>now</code>.'
-        required: false
-        example: '2051-04-08'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: true
-        custom: []
     cleanBodyParameters:
-      name: b
-      device_info: architecto
-      expires_at: '2051-04-08'
+      amount: 27
+      type: add
+      note: architecto
     fileParameters: []
     responses: []
     responseFields: []
@@ -2110,32 +2183,21 @@ endpoints:
   -
     httpMethods:
       - GET
-    uri: 'api/admin/api-keys/{id}'
+    uri: api/register/transactions
     metadata:
       groupName: Endpoints
       groupDescription: ''
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Get transactions for this register.'
       description: ''
       authenticated: false
       custom: []
     headers:
       Content-Type: application/json
       Accept: application/json
-    urlParameters:
-      id:
-        name: id
-        description: 'The ID of the api key.'
-        required: true
-        example: architecto
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        custom: []
-    cleanUrlParameters:
-      id: architecto
+    urlParameters: []
+    cleanUrlParameters: []
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []
@@ -2159,24 +2221,92 @@ endpoints:
     custom: []
   -
     httpMethods:
-      - PUT
-    uri: 'api/admin/api-keys/{id}'
+      - POST
+    uri: api/register/sales
     metadata:
       groupName: Endpoints
       groupDescription: ''
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Create a new sale transaction.'
       description: ''
       authenticated: false
       custom: []
     headers:
       Content-Type: application/json
       Accept: application/json
-    urlParameters:
-      id:
-        name: id
-        description: 'The ID of the api key.'
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      items:
+        name: items
+        description: 'Must have at least 1 items.'
+        required: true
+        example:
+          - []
+        type: 'object[]'
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        custom: []
+      payment_method:
+        name: payment_method
+        description: ''
+        required: true
+        example: cash
+        type: string
+        enumValues:
+          - cash
+          - credit_card
+          - other
+        exampleWasSpecified: false
+        nullable: false
+        custom: []
+      customer_id:
+        name: customer_id
+        description: 'The <code>id</code> of an existing record in the customers table.'
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        custom: []
+      notes:
+        name: notes
+        description: 'Must not be greater than 500 characters.'
+        required: false
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        custom: []
+      tax_amount:
+        name: tax_amount
+        description: 'Must be at least 0.'
+        required: false
+        example: 39
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        custom: []
+      discount_amount:
+        name: discount_amount
+        description: 'Must be at least 0.'
+        required: false
+        example: 84
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        custom: []
+      'items[].product_id':
+        name: 'items[].product_id'
+        description: 'The <code>id</code> of an existing record in the products table.'
         required: true
         example: architecto
         type: string
@@ -2184,45 +2314,36 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         custom: []
-    cleanUrlParameters:
-      id: architecto
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      name:
-        name: name
-        description: 'Must not be greater than 255 characters.'
-        required: false
-        example: b
-        type: string
+      'items[].quantity':
+        name: 'items[].quantity'
+        description: 'Must be at least 1.'
+        required: true
+        example: 22
+        type: number
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         custom: []
-      expires_at:
-        name: expires_at
-        description: 'Must be a valid date. Must be a date after <code>now</code>.'
-        required: false
-        example: '2051-04-08'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: true
-        custom: []
-      is_active:
-        name: is_active
-        description: ''
-        required: false
-        example: false
-        type: boolean
+      'items[].price':
+        name: 'items[].price'
+        description: 'Must be at least 0.'
+        required: true
+        example: 84
+        type: number
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         custom: []
     cleanBodyParameters:
-      name: b
-      expires_at: '2051-04-08'
-      is_active: false
+      items:
+        -
+          product_id: architecto
+          quantity: 22
+          price: 84
+      payment_method: cash
+      notes: b
+      tax_amount: 39
+      discount_amount: 84
     fileParameters: []
     responses: []
     responseFields: []
@@ -2233,39 +2354,37 @@ endpoints:
     custom: []
   -
     httpMethods:
-      - DELETE
-    uri: 'api/admin/api-keys/{id}'
+      - GET
+    uri: api/register/sales
     metadata:
       groupName: Endpoints
       groupDescription: ''
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Get sales for this register.'
       description: ''
       authenticated: false
       custom: []
     headers:
       Content-Type: application/json
       Accept: application/json
-    urlParameters:
-      id:
-        name: id
-        description: 'The ID of the api key.'
-        required: true
-        example: architecto
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        custom: []
-    cleanUrlParameters:
-      id: architecto
+    urlParameters: []
+    cleanUrlParameters: []
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+        description: null
+        custom: []
     responseFields: []
     auth: []
     controller: null
@@ -2275,32 +2394,21 @@ endpoints:
   -
     httpMethods:
       - POST
-    uri: 'api/admin/api-keys/{id}/revoke'
+    uri: api/register/heartbeat
     metadata:
       groupName: Endpoints
       groupDescription: ''
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Log heartbeat from register.'
       description: ''
       authenticated: false
       custom: []
     headers:
       Content-Type: application/json
       Accept: application/json
-    urlParameters:
-      id:
-        name: id
-        description: 'The ID of the api key.'
-        required: true
-        example: architecto
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        custom: []
-    cleanUrlParameters:
-      id: architecto
+    urlParameters: []
+    cleanUrlParameters: []
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []

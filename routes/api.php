@@ -16,12 +16,6 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/ping', function() {
     return response()->json(['message' => 'API is working!', 'status' => 'success'], 200);
 });
-Route::get('/test', function() {
-    return response()->json([
-        'message' => 'API test endpoint reached successfully',
-        'timestamp' => now()->toDateTimeString(),
-    ]);
-});
 
 // Protected routes with Sanctum authentication
 Route::middleware('auth:sanctum')->group(function () {
@@ -58,15 +52,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Register-specific API routes
 Route::middleware('auth:register')->prefix('register')->group(function () {
+    // Status management
     Route::post('/status', [RegisterController::class, 'updateStatus']);
     Route::get('/settings', [RegisterController::class, 'getSettings']);
+    Route::post('/login', [RegisterController::class, 'login']);
+    Route::post('/logout', [RegisterController::class, 'logout']);
+    
+    // Cash management
+    Route::post('/cash', [RegisterController::class, 'updateCashAmount']);
+    
+    // Transaction management
     Route::get('/transactions', [RegisterController::class, 'getTransactions']);
     
-    // POS operations specific to this register
+    // POS operations
     Route::post('/sales', [RegisterPosController::class, 'createSale']);
     Route::get('/sales', [RegisterPosController::class, 'getSales']);
+    
+    // Heartbeat and monitoring
+    Route::post('/heartbeat', [RegisterController::class, 'heartbeat']);
 });
-
-// Real-time register activity tracking
-Route::post('/register/heartbeat', [RegisterController::class, 'heartbeat'])
-    ->middleware('auth:register');

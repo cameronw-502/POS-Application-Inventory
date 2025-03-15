@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 
 class CustomerResource extends Resource
 {
@@ -85,6 +87,9 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
@@ -108,6 +113,105 @@ class CustomerResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\Section::make('Customer Information')
+                    ->schema([
+                        Infolists\Components\Grid::make(2)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('id')
+                                    ->label('Customer ID'),
+                                Infolists\Components\TextEntry::make('status')
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'active' => 'success',
+                                        'inactive' => 'danger',
+                                        'lead' => 'warning',
+                                        default => 'secondary',
+                                    }),
+                                Infolists\Components\TextEntry::make('name'),
+                                Infolists\Components\TextEntry::make('email'),
+                                Infolists\Components\TextEntry::make('phone'),
+                                Infolists\Components\TextEntry::make('company_name')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('title')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('website')
+                                    ->placeholder('-')
+                                    ->url(fn ($state) => $state),
+                            ]),
+                    ]),
+                    
+                Infolists\Components\Section::make('Address')
+                    ->schema([
+                        Infolists\Components\Grid::make(2)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('address')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('city')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('state')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('postal_code')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('country')
+                                    ->placeholder('-'),
+                            ]),
+                    ])
+                    ->collapsible(),
+                    
+                Infolists\Components\Section::make('Business Information')
+                    ->schema([
+                        Infolists\Components\Grid::make(2)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('industry')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('annual_revenue')
+                                    ->placeholder('-')
+                                    ->money('USD'),
+                                Infolists\Components\TextEntry::make('source')
+                                    ->placeholder('-'),
+                                Infolists\Components\TextEntry::make('lead_status')
+                                    ->placeholder('-'),
+                            ]),
+                    ])
+                    ->collapsible(),
+                    
+                Infolists\Components\Section::make('Other Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('notes')
+                            ->placeholder('No notes')
+                            ->columnSpanFull(),
+                        Infolists\Components\TextEntry::make('created_at')
+                            ->label('Created')
+                            ->dateTime(),
+                        Infolists\Components\TextEntry::make('updated_at')
+                            ->label('Last Updated')
+                            ->dateTime(),
+                    ])
+                    ->collapsible(),
+                    
+                Infolists\Components\Section::make('Stats')
+                    ->schema([
+                        Infolists\Components\Grid::make(3)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('lifetime_value')
+                                    ->label('Lifetime Value')
+                                    ->money('USD'),
+                                Infolists\Components\TextEntry::make('last_contacted_at')
+                                    ->label('Last Contacted')
+                                    ->dateTime(),
+                                Infolists\Components\TextEntry::make('transactions_count')
+                                    ->label('Number of Transactions')
+                                    ->getStateUsing(fn ($record) => $record->transactions()->count()),
+                            ]),
+                    ])
+                    ->collapsible(),
             ]);
     }
 

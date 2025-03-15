@@ -12,6 +12,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
 
 class TransactionResource extends Resource
 {
@@ -119,21 +121,23 @@ class TransactionResource extends Resource
                     ->money('USD')
                     ->sortable(),
                     
-                Tables\Columns\TextColumn::make('payment_status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'paid' => 'success',
-                        'partial' => 'warning',
-                        'unpaid' => 'danger',
-                    }),
+                BadgeColumn::make('payment_status')
+                    ->colors([
+                        'secondary' => 'unpaid',
+                        'primary' => 'pending',
+                        'warning' => 'partial',
+                        'success' => 'paid',
+                        'danger' => 'refunded',
+                    ]),
                     
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'completed' => 'success',
-                        'pending' => 'warning',
-                        'cancelled' => 'danger',
-                    }),
+                BadgeColumn::make('status')
+                    ->colors([
+                        'secondary' => 'draft',
+                        'primary' => 'pending',
+                        'warning' => 'processing',
+                        'success' => 'completed',
+                        'danger' => 'canceled',
+                    ]),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('payment_status')
@@ -223,16 +227,44 @@ class TransactionResource extends Resource
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('customer_name')
-                                    ->label('Name'),
-                                    
-                                Infolists\Components\TextEntry::make('customer_email')
-                                    ->label('Email'),
-                                    
-                                Infolists\Components\TextEntry::make('customer_phone')
-                                    ->label('Phone'),
+                                Infolists\Components\TextEntry::make('customer.id')
+                                    ->label('Customer ID')
+                                    ->getStateUsing(function ($record) {
+                                        return $record->customer_id ?? '-';
+                                    }),
+                                
+                                Infolists\Components\TextEntry::make('customer.name')
+                                    ->label('Name')
+                                    ->getStateUsing(function ($record) {
+                                        if ($record->customer && $record->customer->name) {
+                                            return $record->customer->name;
+                                        }
+                                        
+                                        return $record->customer_name ?? 'Walk-in Customer';
+                                    }),
+                                
+                                Infolists\Components\TextEntry::make('customer.email')
+                                    ->label('Email')
+                                    ->getStateUsing(function ($record) {
+                                        if ($record->customer && $record->customer->email) {
+                                            return $record->customer->email;
+                                        }
+                                        
+                                        return $record->customer_email ?? '-';
+                                    }),
+                                
+                                Infolists\Components\TextEntry::make('customer.phone')
+                                    ->label('Phone')
+                                    ->getStateUsing(function ($record) {
+                                        if ($record->customer && $record->customer->phone) {
+                                            return $record->customer->phone;
+                                        }
+                                        
+                                        return $record->customer_phone ?? '-';
+                                    }),
                             ]),
-                    ]),
+                    ])
+                    ->hidden(fn ($record) => empty($record->customer_id) && empty($record->customer_name)),
                     
                 Infolists\Components\Section::make('Transaction Items')
                     ->schema([
@@ -275,7 +307,9 @@ class TransactionResource extends Resource
                                     ->color(fn (string $state): string => match ($state) {
                                         'paid' => 'success',
                                         'partial' => 'warning',
+                                        'pending' => 'primary', // Add this line
                                         'unpaid' => 'danger',
+                                        default => 'secondary',
                                     }),
                                     
                                 Infolists\Components\TextEntry::make('discount_amount')

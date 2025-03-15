@@ -38,7 +38,9 @@ class Product extends Model implements HasMedia
         'barcode',
         'tax_rate',
         'min_stock',
-        'max_stock'
+        'max_stock',
+        'is_active',
+        'cost'
     ];
 
     /**
@@ -56,7 +58,9 @@ class Product extends Model implements HasMedia
         'featured' => 'boolean',
         'tax_rate' => 'float',
         'min_stock' => 'integer',
-        'max_stock' => 'integer'
+        'max_stock' => 'integer',
+        'is_active' => 'boolean',
+        'cost' => 'decimal:2'
     ];
 
     public function category(): BelongsTo
@@ -165,5 +169,13 @@ class Product extends Model implements HasMedia
     public function scopeOutOfStock($query)
     {
         return $query->where('stock', '<=', 0);
+    }
+
+    /**
+     * Get all transaction items for this product.
+     */
+    public function transactionItems()
+    {
+        return $this->hasMany(TransactionItem::class);
     }
 }

@@ -14,19 +14,29 @@ class TransactionItem extends Model
         'transaction_id',
         'product_id',
         'product_name',
-        'product_sku',
         'quantity',
         'unit_price',
-        'discount_amount',
         'subtotal',
         'tax_rate',
         'tax_amount',
+        'line_total',
         'total',
-        'line_total'
+        'discount_amount',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'unit_price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_rate' => 'decimal:4',
+        'tax_amount' => 'decimal:2',
+        'line_total' => 'decimal:2',
+        'total' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
     ];
 
     /**
-     * Get the transaction this item belongs to
+     * Get the transaction that owns the item.
      */
     public function transaction(): BelongsTo
     {
@@ -34,7 +44,7 @@ class TransactionItem extends Model
     }
 
     /**
-     * Get the product associated with this transaction item
+     * Get the product for this item.
      */
     public function product(): BelongsTo
     {
