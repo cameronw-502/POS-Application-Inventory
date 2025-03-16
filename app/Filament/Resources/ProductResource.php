@@ -104,10 +104,103 @@ class ProductResource extends Resource
                                         ])->id;
                                     }),
 
-                                Forms\Components\TextInput::make('price')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('$'),
+                                Forms\Components\Section::make('Pricing')
+                                    ->schema([
+                                        Forms\Components\Select::make('single_supplier_id')
+                                            ->label('Supplier')
+                                            ->options(fn () => \App\Models\Supplier::where('status', 'active')->pluck('name', 'id'))
+                                            ->searchable()
+                                            ->preload()
+                                            ->required()
+                                            ->live(),
+                                        
+                                        Forms\Components\TextInput::make('supplier_price')
+                                            ->label('Cost Price')
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->prefix('$')
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Get $get) {
+                                                // Skip calculation if any required value is missing
+                                                if ($state === null || $state === '' || !is_numeric($state)) return;
+                                                if ($get('margin_percentage') === null || !is_numeric($get('margin_percentage'))) return;
+                                                
+                                                // Calculate price based on cost and margin
+                                                $cost = floatval($state);
+                                                $margin = floatval($get('margin_percentage'));
+                                                if ($margin >= 100) return; // Avoid division by zero
+                                                
+                                                // Price = Cost / (1 - (Margin / 100))
+                                                $calculatedPrice = $cost / (1 - ($margin / 100));
+                                                $set('price', round($calculatedPrice, 2));
+                                            }),
+                                        
+                                        Forms\Components\TextInput::make('margin_percentage')
+                                            ->label('Margin (%)')
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->suffix('%')
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Get $get) {
+                                                // Skip calculation if any required value is missing
+                                                if ($state === null || $state === '' || !is_numeric($state)) return;
+                                                if ($get('supplier_price') === null || !is_numeric($get('supplier_price'))) return;
+                                                
+                                                // Calculate price based on cost and margin
+                                                $cost = floatval($get('supplier_price'));
+                                                $margin = floatval($state);
+                                                if ($margin >= 100) return; // Avoid division by zero
+                                                
+                                                // Price = Cost / (1 - (Margin / 100))
+                                                $calculatedPrice = $cost / (1 - ($margin / 100));
+                                                $set('price', round($calculatedPrice, 2));
+                                            }),
+                                        
+                                        Forms\Components\TextInput::make('price')
+                                            ->required()
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->prefix('$')
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Get $get) {
+                                                // Skip calculation if any required value is missing
+                                                if ($state === null || $state === '' || !is_numeric($state)) return;
+                                                if ($get('supplier_price') === null || !is_numeric($get('supplier_price'))) return;
+                                                
+                                                // Calculate margin based on cost and price
+                                                $cost = floatval($get('supplier_price'));
+                                                $price = floatval($state);
+                                                
+                                                if ($cost <= 0 || $price <= 0 || $cost >= $price) {
+                                                    $set('margin_percentage', 0);
+                                                    return;
+                                                }
+                                                
+                                                // Margin = (1 - (Cost / Price)) * 100
+                                                $calculatedMargin = (1 - ($cost / $price)) * 100;
+                                                $set('margin_percentage', round($calculatedMargin, 2));
+                                            }),
+                                        
+                                        Forms\Components\TextInput::make('supplier_sku')
+                                            ->label('Supplier Stock Number')
+                                            ->helperText('The stock number or code used by the supplier'),
+                                            
+                                        Forms\Components\Select::make('supplier_unit_type')
+                                            ->label('Purchase Unit')
+                                            ->options([
+                                                'single' => 'Single Unit',
+                                                'case_6' => 'Case of 6',
+                                                'case_12' => 'Case of 12',
+                                                'case_24' => 'Case of 24',
+                                                'case_48' => 'Case of 48',
+                                                'box_100' => 'Box of 100',
+                                                'pallet' => 'Pallet',
+                                                'custom' => 'Custom Quantity'
+                                            ]),
+                                    ])
+                                    ->columns(2),
 
                                 Forms\Components\TextInput::make('stock_quantity')
                                     ->required()
@@ -337,49 +430,6 @@ class ProductResource extends Resource
                                     ->maxFiles(5)
                                     ->columnSpanFull(),
                             ]),
-                            
-                        Forms\Components\Tabs\Tab::make('Supplier Information')
-                            ->schema([
-                                Forms\Components\Section::make('Supplier Management')
-                                    ->schema([
-                                        Forms\Components\Select::make('single_supplier_id')
-                                            ->label('Supplier')
-                                            ->options(fn () => \App\Models\Supplier::where('status', 'active')->pluck('name', 'id'))
-                                            ->searchable()
-                                            ->preload()
-                                            ->required(),
-                                            
-                                        Forms\Components\TextInput::make('supplier_price')
-                                            ->label('Supplier Price')
-                                            ->numeric()
-                                            ->prefix('$'),
-                                            
-                                        Forms\Components\TextInput::make('supplier_sku')
-                                            ->label('Supplier Stock Number')
-                                            ->helperText('The stock number or code used by the supplier'),
-                                            
-                                        Forms\Components\Select::make('supplier_unit_type')
-                                            ->label('Purchase Unit')
-                                            ->options([
-                                                'single' => 'Single Unit',
-                                                'case_6' => 'Case of 6',
-                                                'case_12' => 'Case of 12',
-                                                'case_24' => 'Case of 24',
-                                                'case_48' => 'Case of 48',
-                                                'box_100' => 'Box of 100',
-                                                'pallet' => 'Pallet',
-                                                'custom' => 'Custom Quantity'
-                                            ]),
-                                            
-                                        Forms\Components\TextInput::make('supplier_unit_quantity')
-                                            ->label('Units per Purchase')
-                                            ->helperText('How many individual units are in each purchase unit')
-                                            ->numeric()
-                                            ->default(1)
-                                            ->visible(fn (Get $get): bool => $get('supplier_unit_type') === 'custom'),
-                                    ])
-                                    ->columns(2)
-                            ])
                     ])
                     // Make the tabs component full width
                     ->columnSpanFull()

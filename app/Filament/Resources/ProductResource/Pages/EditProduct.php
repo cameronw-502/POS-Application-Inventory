@@ -128,6 +128,18 @@ class EditProduct extends EditRecord
             $data['single_supplier_id'] = $supplier->id;
             $data['supplier_price'] = $supplier->pivot->cost_price;
             $data['supplier_sku'] = $supplier->pivot->supplier_sku;
+            
+            // Calculate margin if price and cost are available
+            if (!empty($data['price']) && !empty($supplier->pivot->cost_price)) {
+                $price = floatval($data['price']);
+                $cost = floatval($supplier->pivot->cost_price);
+                
+                if ($cost > 0 && $price > 0 && $cost < $price) {
+                    $data['margin_percentage'] = round((1 - ($cost / $price)) * 100, 2);
+                } else {
+                    $data['margin_percentage'] = 0;
+                }
+            }
         }
         
         // Load existing product-supplier relationships into the form
