@@ -303,124 +303,6 @@ class ProductResource extends Resource
                                     ])
                                     ->columns(2),
                             ]),
-                        
-                        Forms\Components\Tabs\Tab::make('Variations')
-                            ->schema([
-                                Forms\Components\Toggle::make('has_variations')
-                                    ->label('This product has multiple variations')
-                                    ->helperText('Enable to create variations like different sizes, colors, etc.')
-                                    ->live()
-                                    ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                        if (!$state) {
-                                            $set('variations', []);
-                                        }
-                                    }),
-                                    
-                                Forms\Components\Section::make('Product Variations')
-                                    ->schema([
-                                        Forms\Components\Repeater::make('variations')
-                                            ->relationship()
-                                            ->schema([
-                                                Forms\Components\TextInput::make('name')
-                                                    ->required()
-                                                    ->maxLength(255)
-                                                    ->helperText('e.g. "Blue, Large" or "XL"'),
-                                                    
-                                                Forms\Components\TextInput::make('sku')
-                                                    ->disabled()
-                                                    ->placeholder('Auto-generated')
-                                                    ->helperText('SKU will be auto-generated'),
-                                                    
-                                                Forms\Components\TextInput::make('upc')
-                                                    ->maxLength(255)
-                                                    ->helperText('Leave blank to use SKU as UPC'),
-                                                    
-                                                Forms\Components\TextInput::make('price')
-                                                    ->numeric()
-                                                    ->prefix('$')
-                                                    ->helperText('Leave blank to use parent product price'),
-                                                    
-                                                Forms\Components\TextInput::make('stock_quantity')
-                                                    ->numeric()
-                                                    ->default(0),
-                                                    
-                                                Forms\Components\Grid::make()
-                                                    ->schema([
-                                                        Forms\Components\Select::make('color_id')
-                                                            ->label('Color')
-                                                            ->options(Color::pluck('name', 'id'))
-                                                            ->searchable()
-                                                            ->createOptionForm([
-                                                                Forms\Components\TextInput::make('name')
-                                                                    ->required()
-                                                                    ->maxLength(255)
-                                                                    ->unique(Color::class, 'name'),
-                                                                Forms\Components\ColorPicker::make('hex_code')
-                                                                    ->required(),
-                                                            ])
-                                                            ->createOptionUsing(function (array $data): int {
-                                                                return Color::create([
-                                                                    'name' => $data['name'],
-                                                                    'hex_code' => $data['hex_code'],
-                                                                ])->id;
-                                                            }),
-                                                        
-                                                        Forms\Components\Select::make('size_id')
-                                                            ->label('Size')
-                                                            ->options(Size::orderBy('display_order')->pluck('name', 'id'))
-                                                            ->searchable()
-                                                            ->createOptionForm([
-                                                                Forms\Components\TextInput::make('name')
-                                                                    ->required()
-                                                                    ->maxLength(255)
-                                                                    ->unique(Size::class, 'name'),
-                                                                Forms\Components\TextInput::make('display_order')
-                                                                    ->numeric()
-                                                                    ->default(0),
-                                                            ])
-                                                            ->createOptionUsing(function (array $data): int {
-                                                                return Size::create([
-                                                                    'name' => $data['name'],
-                                                                    'display_order' => $data['display_order'],
-                                                                ])->id;
-                                                            }),
-                                                    ])
-                                                    ->columns(2),
-                                                    
-                                                Forms\Components\Grid::make()
-                                                    ->schema([
-                                                        Forms\Components\TextInput::make('weight')
-                                                            ->label('Weight (lbs)')
-                                                            ->numeric()
-                                                            ->step(0.01)
-                                                            ->placeholder('Use parent value'),
-                                                            
-                                                        Forms\Components\TextInput::make('width')
-                                                            ->label('Width (in)')
-                                                            ->numeric()
-                                                            ->step(0.01)
-                                                            ->placeholder('Use parent value'),
-                                                            
-                                                        Forms\Components\TextInput::make('height')
-                                                            ->label('Height (in)')
-                                                            ->numeric()
-                                                            ->step(0.01)
-                                                            ->placeholder('Use parent value'),
-                                                            
-                                                        Forms\Components\TextInput::make('length')
-                                                            ->label('Length (in)')
-                                                            ->numeric()
-                                                            ->step(0.01)
-                                                            ->placeholder('Use parent value'),
-                                                    ])
-                                                    ->columns(2),
-                                            ])
-                                            ->defaultItems(0)
-                                            ->columns(1)
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->visible(fn (Get $get) => $get('has_variations')),
-                            ]),
                             
                         Forms\Components\Tabs\Tab::make('Images')
                             ->schema([
@@ -429,6 +311,41 @@ class ProductResource extends Resource
                                     ->multiple()
                                     ->maxFiles(5)
                                     ->columnSpanFull(),
+                            ]),
+
+                        // Add a new tab for related products
+                        Forms\Components\Tabs\Tab::make('Related Products')
+                            ->schema([
+                                Forms\Components\Section::make('Product Relationships')
+                                    ->schema([
+                                        Forms\Components\Select::make('parent_product_id')
+                                            ->label('Parent Product')
+                                            ->helperText('If this is a variation, select the main product')
+                                            ->relationship('parentProduct', 'name')
+                                            ->searchable()
+                                            ->preload()
+                                            ->nullable(),
+                                            
+                                        Forms\Components\Select::make('related_products')
+                                            ->label('Related Products')
+                                            ->helperText('Products that are related to this one (shown as suggestions)')
+                                            ->multiple()
+                                            ->relationship('relatedProducts', 'name')
+                                            ->searchable()
+                                            ->preload(),
+                                            
+                                        Forms\Components\Select::make('variation_type')
+                                            ->label('Variation Type')
+                                            ->options([
+                                                'color' => 'Color Variation',
+                                                'size' => 'Size Variation',
+                                                'material' => 'Material Variation',
+                                                'style' => 'Style Variation',
+                                                'other' => 'Other Variation'
+                                            ])
+                                            ->helperText('What makes this product different from its parent?')
+                                            ->visible(fn (Get $get): bool => $get('parent_product_id') !== null),
+                                    ])
                             ]),
                     ])
                     // Make the tabs component full width

@@ -11,6 +11,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class EditProduct extends EditRecord
 {
@@ -25,98 +26,42 @@ class EditProduct extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('generateVariations')
-                ->label('Generate Variations')
-                ->color('success')
-                ->icon('heroicon-o-cube')
-                ->requiresConfirmation()
+            // Other actions...
+            Actions\Action::make('cloneProduct')
+                ->label('Clone as New Product')
+                ->icon('heroicon-o-document-duplicate')  // Changed from 'heroicon-o-duplicate'
+                ->color('gray')
                 ->action(function () {
-                    $product = $this->record;
+                    $originalProduct = $this->record;
                     
-                    // Get all colors and sizes
-                    $colors = Color::all();
-                    $sizes = Size::orderBy('display_order')->get();
+                    // Create a duplicate but change the name and SKU
+                    $newProduct = $originalProduct->replicate();
+                    $newProduct->name = $originalProduct->name . ' (Copy)';
+                    $newProduct->sku = null; // Will be auto-generated
+                    $newProduct->slug = Str::slug($newProduct->name);
+                    $newProduct->parent_product_id = $originalProduct->id; // Set relationship
+                    $newProduct->save();
                     
-                    if ($colors->isEmpty() || $sizes->isEmpty()) {
-                        Notification::make()
-                            ->title('Cannot generate variations')
-                            ->body('You need at least one color and one size')
-                            ->danger()
-                            ->send();
-                        return;
-                    }
-                    
-                    // Create a variation for each color/size combination
-                    $count = 0;
-                    $baseSkuPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $product->name), 0, 3));
-                    $baseSkuNumber = str_pad($product->id, 6, '0', STR_PAD_LEFT);
-                    
-                    foreach ($colors as $color) {
-                        foreach ($sizes as $size) {
-                            // Check if this combination already exists
-                            $exists = ProductVariant::where('product_id', $product->id)
-                                ->where('color_id', $color->id)
-                                ->where('size_id', $size->id)
-                                ->exists();
-                                
-                            if (!$exists) {
-                                // Generate a unique SKU for this variation
-                                $colorCode = strtoupper(substr($color->name, 0, 2));
-                                $sizeCode = strtoupper(substr($size->name, 0, 2));
-                                $sku = "{$baseSkuPrefix}-{$baseSkuNumber}-{$colorCode}{$sizeCode}";
-                                
-                                // Create the variant with inherited attributes from parent
-                                $variant = ProductVariant::create([
-                                    'product_id' => $product->id,
-                                    'name' => "{$product->name} - {$color->name}, {$size->name}",
-                                    'sku' => $sku,
-                                    'color_id' => $color->id,
-                                    'size_id' => $size->id,
-                                    'price' => $product->price,
-                                    'stock_quantity' => 0,
-                                    'description' => $product->description,
-                                    // Inherit all parent attributes
-                                    'weight' => $product->weight,
-                                    'width' => $product->width,
-                                    'height' => $product->height,
-                                    'length' => $product->length,
-                                    // Add any other attributes you want to inherit
-                                ]);
-                                
-                                // Copy supplier relationships if they exist
-                                $productSuppliers = $product->suppliers()->get();
-                                foreach ($productSuppliers as $supplier) {
-                                    // For each variant, maintain the same supplier but with a suffix for supplier_sku
-                                    $pivotData = [
-                                        'cost_price' => $supplier->pivot->cost_price,
-                                        'supplier_sku' => $supplier->pivot->supplier_sku . "-{$colorCode}{$sizeCode}",
-                                        'is_preferred' => $supplier->pivot->is_preferred,
-                                    ];
-                                    $variant->suppliers()->attach($supplier->id, $pivotData);
-                                }
-                                
-                                $count++;
-                            }
+                    // Optionally copy relations like suppliers
+                    if ($originalProduct->suppliers()->exists()) {
+                        foreach ($originalProduct->suppliers as $supplier) {
+                            $newProduct->suppliers()->attach($supplier->id, [
+                                'cost_price' => $supplier->pivot->cost_price,
+                                'supplier_sku' => $supplier->pivot->supplier_sku . '-COPY',
+                                'is_preferred' => $supplier->pivot->is_preferred,
+                            ]);
                         }
                     }
                     
-                    // Enable variations flag
-                    if ($count > 0) {
-                        $product->has_variations = true;
-                        $product->save();
-                    }
-                    
                     Notification::make()
-                        ->title('Variations generated')
-                        ->body("Created {$count} new variations")
+                        ->title('Product Cloned')
                         ->success()
+                        ->body('The product was cloned successfully. You can now edit the copy.')
                         ->send();
                         
-                    $this->redirect($this->getResource()::getUrl('edit', ['record' => $product]));
+                    // Redirect to edit the new product
+                    $this->redirect($this->getResource()::getUrl('edit', ['record' => $newProduct]));
                 })
-                ->visible(fn () => $this->record instanceof \App\Models\Product),
-            
-            // Other actions...
         ];
     }
 

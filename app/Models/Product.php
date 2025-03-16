@@ -230,6 +230,28 @@ class Product extends Model implements HasMedia
         return $this->hasMany(ProductVariant::class);
     }
 
+    // Add these relationships to the Product model
+
+    public function parentProduct()
+    {
+        return $this->belongsTo(Product::class, 'parent_product_id');
+    }
+
+    public function childProducts()
+    {
+        return $this->hasMany(Product::class, 'parent_product_id');
+    }
+
+    public function relatedProducts()
+    {
+        return $this->belongsToMany(
+            Product::class, 
+            'related_products',
+            'product_id',
+            'related_product_id'
+        )->withTimestamps();
+    }
+
     // Override the setAttribute method to prevent changing SKU
     public function setAttribute($key, $value)
     {
