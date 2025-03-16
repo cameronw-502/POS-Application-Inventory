@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\Model;
 class CreateProduct extends CreateRecord
 {
     protected static string $resource = ProductResource::class;
-    protected ?string $maxWidth = 'full';
-    protected ?string $contentWidth = 'full';
+    
+    // Make this form full width correctly
     protected ?string $maxContentWidth = 'full';
     
-    // Add this property at the top of the class
-    protected int|string|array $columnSpan = 'full';
+    // Change this to match Filament's expected property
+    protected ?int $columnSpan = 12;
+    
+    protected ?string $maxWidth = 'full';
+    protected ?string $contentWidth = 'full';
     
     // Before the record is created, validate supplier data
     protected function mutateFormDataBeforeCreate(array $data): array

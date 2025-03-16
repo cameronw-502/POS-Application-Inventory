@@ -10,15 +10,11 @@ class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
 
-    // Add these properties at the top of the class, after the protected static string $resource line:
-    protected ?string $maxWidth = 'full';
-    protected ?string $contentWidth = 'full';
-
-    // Add this property at the top of the class
-    protected int|string|array $columnSpan = 'full';
-
     // Add these properties to make the form full width
     protected ?string $maxContentWidth = 'full';
+    
+    // Use 12 column span (full width in Filament's grid)
+    protected ?int $columnSpan = 12;
 
     protected function getHeaderActions(): array
     {

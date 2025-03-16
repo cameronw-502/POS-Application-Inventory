@@ -6,8 +6,8 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Supplier;
-use App\Models\Color; // Add this import
-use App\Models\Size;  // Add this import
+use App\Models\Color;
+use App\Models\Size;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -30,7 +30,11 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
     protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';
     protected static ?string $navigationGroup = 'Inventory Management';
-
+    
+    // Add this to make form full width at the Resource level
+    protected static ?string $formContentWidth = 'full';
+    protected static ?string $formMaxContentWidth = 'full';
+    
     public static function form(Form $form): Form
     {
         return $form
@@ -364,7 +368,19 @@ class ProductResource extends Resource
                                     ->itemLabel(fn (array $state): ?string => 
                                         $state['supplier_id'] ? Supplier::find($state['supplier_id'])?->name : null),
                             ]),
-                    ]),
+                    ])
+                    // Make the tabs component full width
+                    ->columnSpanFull()
+                    ->persistTabInQueryString(),
+            ])
+            // Add this to explicitly set form to maximum size
+            ->columns([
+                'default' => 1,
+                'sm' => 1,
+                'md' => 1,
+                'lg' => 1,
+                'xl' => 1,
+                '2xl' => 1,
             ]);
     }
 
