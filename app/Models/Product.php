@@ -11,6 +11,7 @@ use Spatie\Sluggable\SlugOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Support\Facades\DB;
 
 class Product extends Model implements HasMedia
 {
@@ -280,5 +281,34 @@ class Product extends Model implements HasMedia
                 $product->upc = $product->sku;
             }
         });
+    }
+
+    /**
+     * Get purchase order items related to this product
+     */
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
+    /**
+     * Calculate the quantity currently on order
+     */
+    public function getQuantityOnOrderAttribute()
+    {
+        // Get the sum of quantities from open purchase orders
+        return $this->purchaseOrderItems()
+            ->whereHas('purchaseOrder', function($query) {
+                $query->whereIn('status', ['ordered', 'partially_received']);
+            })
+            ->sum(DB::raw('quantity - COALESCE(quantity_received, 0)'));
+    }
+
+    /**
+     * Check if product has any pending orders
+     */
+    public function getHasPendingOrdersAttribute()
+    {
+        return $this->quantity_on_order > 0;
     }
 }

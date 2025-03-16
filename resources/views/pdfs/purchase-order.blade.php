@@ -127,20 +127,36 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 10%;">Item #</th>
-                    <th style="width: 40%;">Description</th>
+                    <th style="width: 8%;">Item #</th>
+                    <th style="width: 30%;">Description</th>
+                    <th style="width: 15%;">SKU / Vendor SKU</th>
                     <th style="width: 10%;">Quantity</th>
-                    <th style="width: 15%;">Unit Price</th>
-                    <th style="width: 15%;">Total</th>
+                    <th style="width: 12%;">Unit Price</th>
+                    <th style="width: 12%;">Our Price</th>
+                    <th style="width: 13%;">Total</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($purchaseOrder->items as $index => $item)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->product->name }}</td>
+                    <td>{{ $item->product->name }}
+                        @if($item->product->color)
+                        <br><small>Color: {{ $item->product->color->name }}</small>
+                        @endif
+                        @if($item->product->size)
+                        <br><small>Size: {{ $item->product->size->name }}</small>
+                        @endif
+                    </td>
+                    <td>
+                        {{ $item->product->sku }}<br>
+                        @if($item->supplier_sku)
+                        <small>Vendor: {{ $item->supplier_sku }}</small>
+                        @endif
+                    </td>
                     <td>{{ $item->quantity }}</td>
                     <td>${{ number_format($item->unit_price, 2) }}</td>
+                    <td>${{ number_format($item->selling_price ?? $item->product->price, 2) }}</td>
                     <td>${{ number_format($item->quantity * $item->unit_price, 2) }}</td>
                 </tr>
                 @endforeach
@@ -148,6 +164,8 @@
                 @if(count($purchaseOrder->items) < 10)
                     @for($i = 0; $i < (10 - count($purchaseOrder->items)); $i++)
                         <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>

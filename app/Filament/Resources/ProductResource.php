@@ -398,6 +398,20 @@ class ProductResource extends Resource
                         'draft' => 'warning',
                         'archived' => 'danger',
                     }),
+                Tables\Columns\TextColumn::make('quantity_on_order')
+                    ->label('On Order')
+                    ->getStateUsing(fn (Product $record) => $record->quantity_on_order > 0 ? $record->quantity_on_order : '-')
+                    ->visible()
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (Product $record) => $record->quantity_on_order > 0 ? 'warning' : 'secondary'),
+
+                Tables\Columns\IconColumn::make('has_pending_orders')
+                    ->label('On PO')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-truck')
+                    ->falseIcon('')
+                    ->trueColor('warning'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('top_level_category')
@@ -592,6 +606,47 @@ class ProductResource extends Resource
                             ])
                             ->columns(4),
                     ]),
+
+                Infolists\Components\TextEntry::make('quantity_on_order')
+                    ->label('On Order')
+                    ->visible(fn (Product $record) => $record->quantity_on_order > 0)
+                    ->badge()
+                    ->color('warning'),
+
+                Infolists\Components\Section::make('Purchase Orders')
+                    ->schema([
+                        Infolists\Components\RepeatableEntry::make('purchaseOrderItems')
+                            ->label(false)
+                            ->filter(function ($query) {
+                                return $query->whereHas('purchaseOrder', function ($q) {
+                                    $q->whereIn('status', ['ordered', 'partially_received']);
+                                });
+                            })
+                            ->schema([
+                                Infolists\Components\TextEntry::make('purchaseOrder.po_number')
+                                    ->label('PO Number')
+                                    ->url(fn ($record) => $record->purchaseOrder ? 
+                                        route('filament.admin.resources.purchase-orders.view', ['record' => $record->purchaseOrder->id]) : null),
+                                    
+                                Infolists\Components\TextEntry::make('purchaseOrder.order_date')
+                                    ->label('Order Date')
+                                    ->date(),
+                                    
+                                Infolists\Components\TextEntry::make('quantity')
+                                    ->label('Ordered'),
+                                    
+                                Infolists\Components\TextEntry::make('quantity_received')
+                                    ->label('Received')
+                                    ->default(0),
+                                    
+                                Infolists\Components\TextEntry::make('purchaseOrder.expected_delivery_date')
+                                    ->label('Expected')
+                                    ->date(),
+                            ])
+                            ->columns(5),
+                    ])
+                    ->collapsed()
+                    ->visible(fn (Product $record) => $record->quantity_on_order > 0),
             ]);
     }
 

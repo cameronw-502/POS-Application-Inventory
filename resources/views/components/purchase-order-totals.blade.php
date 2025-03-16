@@ -3,7 +3,7 @@
         <div><strong>Subtotal:</strong></div>
         <div class="text-right">${{ number_format($subtotal, 2) }}</div>
         
-        <div><strong>Tax (10%):</strong></div>
+        <div><strong>Tax ({{ $taxRate }}%):</strong></div>
         <div class="text-right">${{ number_format($tax, 2) }}</div>
         
         <div class="border-t pt-2"><strong>Total:</strong></div>

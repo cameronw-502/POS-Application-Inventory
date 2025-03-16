@@ -142,41 +142,83 @@ class PurchaseOrderResource extends Resource
                                             return [];
                                         }
                                         
-                                        // CORRECTED QUERY: Use proper relationship query
-                                        return Product::whereHas('suppliers', function ($query) use ($supplierId) {
+                                        // Get products with their relationship to this supplier
+                                        $products = Product::with(['suppliers' => function($query) use ($supplierId) {
+                                            $query->where('supplier_id', $supplierId);
+                                        }])
+                                        ->whereHas('suppliers', function ($query) use ($supplierId) {
                                             $query->where('supplier_id', $supplierId);
                                         })
-                                        ->pluck('name', 'id');
+                                        ->get();
+                                        
+                                        // Format the options with detailed information
+                                        return $products->mapWithKeys(function ($product) use ($supplierId) {
+                                            $supplier = $product->suppliers->first();
+                                            $supplierSku = $supplier ? $supplier->pivot->supplier_sku : '';
+                                            
+                                            $colorInfo = $product->color ? " - Color: {$product->color->name}" : "";
+                                            $sizeInfo = $product->size ? " - Size: {$product->size->name}" : "";
+                                            
+                                            // Create a detailed label
+                                            $label = "[{$product->sku}] {$product->name}{$colorInfo}{$sizeInfo}";
+                                            if ($supplierSku) {
+                                                $label .= " (Vendor SKU: {$supplierSku})";
+                                            }
+                                            
+                                            return [$product->id => $label];
+                                        });
                                     })
                                     ->searchable()
                                     ->preload()
                                     ->required()
+                                    ->columnSpanFull()
                                     ->live()
+                                    // Display additional product info when selected
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                                         if ($state) {
                                             $product = Product::find($state);
+                                            $supplierId = $get('../../supplier_id');
                                             
-                                            // Get the cost price from the pivot table if available
-                                            $supplier_id = $get('../../supplier_id');
-                                            if ($supplier_id) {
+                                            if ($product && $supplierId) {
+                                                // Get supplier-specific information
                                                 $productSupplier = \DB::table('product_supplier')
                                                     ->where('product_id', $state)
-                                                    ->where('supplier_id', $supplier_id)
+                                                    ->where('supplier_id', $supplierId)
                                                     ->first();
-                                                    
+                                                
+                                                // Set unit price from supplier relationship
                                                 if ($productSupplier && $productSupplier->cost_price) {
                                                     $set('unit_price', $productSupplier->cost_price);
-                                                    return;
+                                                } else {
+                                                    $set('unit_price', $product->cost_price ?? $product->price);
                                                 }
+                                                
+                                                // Set supplier SKU for reference
+                                                $set('supplier_sku', $productSupplier ? $productSupplier->supplier_sku : '');
+                                                
+                                                // Set the selling price (our price) from the product
+                                                $set('selling_price', $product->price);
+                                                
+                                                // Also calculate the initial subtotal
+                                                $quantity = $get('quantity') ?? 1;
+                                                $unitPrice = $productSupplier && $productSupplier->cost_price 
+                                                    ? $productSupplier->cost_price 
+                                                    : ($product->cost_price ?? $product->price);
+                                                $set('subtotal', $quantity * $unitPrice);
                                             }
-                                            
-                                            // Fallback to product's cost price or regular price
-                                            $set('unit_price', $product->cost_price ?? $product->price);
                                         } else {
                                             $set('unit_price', null);
+                                            $set('supplier_sku', null);
+                                            $set('selling_price', null);
+                                            $set('subtotal', 0);
                                         }
-                                    })
-                                    ->disabled(fn (Forms\Get $get) => !$get('../../supplier_id')),
+                                    }),
+                                    
+                                Forms\Components\TextInput::make('supplier_sku')
+                                    ->label('Vendor Stock #')
+                                    ->helperText('The supplier\'s stock number for this product')
+                                    ->disabled()
+                                    ->dehydrated(true),
                                     
                                 Forms\Components\TextInput::make('quantity')
                                     ->numeric()
@@ -187,6 +229,13 @@ class PurchaseOrderResource extends Resource
                                         $unitPrice = $get('unit_price') ?? 0;
                                         $subtotal = $state * $unitPrice;
                                         $set('subtotal', $subtotal);
+                                    })
+                                    ->afterStateHydrated(function ($component, $state, Forms\Set $set, Forms\Get $get) {
+                                        // If we have a unit_price, calculate the subtotal right away
+                                        $unitPrice = $get('unit_price') ?? 0;
+                                        if ($unitPrice > 0) {
+                                            $set('subtotal', $state * $unitPrice);
+                                        }
                                     }),
                                     
                                 Forms\Components\TextInput::make('unit_price')
@@ -206,10 +255,26 @@ class PurchaseOrderResource extends Resource
                                     ->numeric()
                                     ->prefix('$')
                                     ->disabled()
-                                    ->default(0),
+                                    ->default(0)
+                                    ->afterStateHydrated(function ($component, $state, Forms\Get $get) {
+                                        // Calculate initial subtotal if we have both quantity and unit_price
+                                        $quantity = $get('quantity') ?? 1;
+                                        $unitPrice = $get('unit_price') ?? 0;
+                                        
+                                        if ($unitPrice > 0) {
+                                            $component->state($quantity * $unitPrice);
+                                        }
+                                    }),
                                     
                                 Forms\Components\TextInput::make('note')
                                     ->maxLength(255),
+                                    
+                                Forms\Components\TextInput::make('selling_price')
+                                    ->label('Our Price')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->disabled() // Make it read-only
+                                    ->dehydrated(true),
                             ])
                             ->columns(4)
                             ->itemLabel(fn (array $state): ?string => 
@@ -237,14 +302,16 @@ class PurchaseOrderResource extends Resource
                                     }
                                 }
                                 
-                                $tax = $subtotal * 0.1; // Assuming 10% tax
+                                $taxRate = 0.07; // 7% tax rate
+                                $tax = $subtotal * $taxRate;
                                 $total = $subtotal + $tax;
                                 
                                 return new \Illuminate\Support\HtmlString(
                                     view('components.purchase-order-totals', [
                                         'subtotal' => $subtotal,
                                         'tax' => $tax,
-                                        'total' => $total
+                                        'total' => $total,
+                                        'taxRate' => $taxRate * 100, // Convert to percentage for display
                                     ])->render()
                                 );
                             }),

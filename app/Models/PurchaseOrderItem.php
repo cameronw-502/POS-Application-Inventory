@@ -17,7 +17,9 @@ class PurchaseOrderItem extends Model
         'unit_price',
         'subtotal',
         'quantity_received',
-        'note' // Make sure this is here
+        'note',
+        'supplier_sku',
+        'selling_price'
     ];
 
     protected $casts = [
