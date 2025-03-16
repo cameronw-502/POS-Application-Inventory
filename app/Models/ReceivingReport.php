@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ReceivingReport extends Model implements HasMedia
 {
@@ -52,5 +53,18 @@ class ReceivingReport extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('damaged_box_images');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->performOnCollections('damaged_box_images');
+            
+        $this->addMediaConversion('preview')
+            ->width(600)
+            ->height(600)
+            ->performOnCollections('damaged_box_images');
     }
 }

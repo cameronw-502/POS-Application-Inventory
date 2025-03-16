@@ -48,9 +48,7 @@ class ReceivingReportResource extends Resource
                         Forms\Components\Select::make('supplier_filter')
                             ->label('Supplier')
                             ->options(function () {
-                                return \App\Models\Supplier::whereHas('purchaseOrders', function ($query) {
-                                    $query->whereIn('status', ['ordered', 'partially_received']);
-                                })->pluck('name', 'id');
+                                return \App\Models\Supplier::pluck('name', 'id');
                             })
                             ->searchable()
                             ->live()
@@ -66,35 +64,24 @@ class ReceivingReportResource extends Resource
                                 $supplierId = $get('supplier_filter');
                                 if (!$supplierId) return [];
                                 
+                                // In edit mode, include the current PO even if it's completed
+                                if (request()->routeIs('*.edit')) {
+                                    return \App\Models\PurchaseOrder::where('supplier_id', $supplierId)
+                                        ->pluck('po_number', 'id');
+                                }
+                                
                                 return \App\Models\PurchaseOrder::where('supplier_id', $supplierId)
                                     ->whereIn('status', ['ordered', 'partially_received'])
                                     ->pluck('po_number', 'id');
                             })
                             ->searchable()
-                            ->live()
+                            ->required()
                             ->visible(fn (Forms\Get $get) => (bool) $get('supplier_filter'))
+                            // Don't trigger item rebuild in edit mode
                             ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                // Clear existing items
-                                $set('items', []);
-                                
-                                // If a purchase order is selected, fetch and set its items
-                                if ($state) {
-                                    $poItems = PurchaseOrderItem::where('purchase_order_id', $state)
-                                        ->whereRaw('quantity_received < quantity')
-                                        ->with('product')
-                                        ->get();
-                                    
-                                    $items = [];
-                                    foreach ($poItems as $poItem) {
-                                        $items[] = [
-                                            'purchase_order_item_id' => $poItem->id,
-                                            'product_id' => $poItem->product_id,
-                                            'quantity_received' => $poItem->quantity - $poItem->quantity_received,
-                                            'notes' => '',
-                                        ];
-                                    }
-                                    
-                                    $set('items', $items);
+                                if (!request()->routeIs('*.edit')) {
+                                    // Clear existing items only in create mode
+                                    $set('items', []);
                                 }
                             }),
                         
@@ -209,34 +196,16 @@ class ReceivingReportResource extends Resource
                                 // Second section: Quantity inputs
                                 Forms\Components\Grid::make()
                                     ->schema([
-                                        Forms\Components\TextInput::make('quantity_ordered')
-                                            ->label('Ordered')
-                                            ->numeric()
-                                            ->disabled()
+                                        // Hidden field to store the ordered quantity
+                                        Forms\Components\Hidden::make('quantity_ordered')
                                             ->dehydrated(true)
-                                            // Make it visually distinct with a style that works in both light and dark mode
-                                            ->extraInputAttributes([
-                                                'style' => 'background-color: var(--fi-color-gray-100); font-weight: bold; color: var(--fi-color-gray-950);'
-                                            ])
-                                            // This is a more reliable way to get the quantity from the PO
                                             ->formatStateUsing(function (Forms\Get $get) {
                                                 $poItemId = $get('purchase_order_item_id');
                                                 if (!$poItemId) return null;
                                                 
                                                 $poItem = \App\Models\PurchaseOrderItem::find($poItemId);
                                                 return $poItem ? $poItem->quantity : null;
-                                            })
-                                            // This ensures the value persists during form state changes
-                                            ->afterStateHydrated(function ($component, $state, Forms\Get $get) {
-                                                $poItemId = $get('purchase_order_item_id');
-                                                if (!$poItemId) return;
-                                                
-                                                $poItem = \App\Models\PurchaseOrderItem::find($poItemId);
-                                                if ($poItem) {
-                                                    $component->state($poItem->quantity);
-                                                }
-                                            })
-                                            ->columnSpan(1),
+                                            }),
                                             
                                         Forms\Components\TextInput::make('quantity_received')
                                             ->label('Good Condition')
@@ -341,7 +310,7 @@ class ReceivingReportResource extends Resource
                                             ])
                                             ->columnSpan(1),
                                     ])
-                                    ->columns(4),
+                                    ->columns(3),
                                     
                                 // Notes and damage images
                                 Forms\Components\Grid::make()
@@ -457,10 +426,15 @@ class ReceivingReportResource extends Resource
                             ->circular(false)
                             ->columnSpanFull()
                             ->height(150)
-                            // Use the correct media collection name
-                            ->disk('public')
-                            ->visibility('public')
-                            // Always make it visible when boxes are damaged
+                            ->disk('public') // Add this
+                            ->getStateUsing(function ($record) {
+                                // Map the media collection to URLs for display
+                                return $record->getMedia('damaged_box_images')
+                                    ->map(function ($media) {
+                                        return $media->getUrl();
+                                    })
+                                    ->toArray();
+                            })
                             ->visible(fn ($record) => $record->has_damaged_boxes),
                     ])
                     // Show expanded rather than collapsed
@@ -517,7 +491,14 @@ class ReceivingReportResource extends Resource
                                     ->visible(fn ($record) => $record->quantity_damaged > 0)
                                     ->height(120)
                                     // Access using Spatie Media Library
-                                    ->getStateUsing(fn ($record) => $record->getMedia('damage_images'))
+                                    ->getStateUsing(function ($record) {
+                                        // Map the media collection to URLs for display
+                                        return $record->getMedia('damage_images')
+                                            ->map(function ($media) {
+                                                return $media->getUrl();
+                                            })
+                                            ->toArray();
+                                    })
                                     ->columnSpan(3),
                                     
                                 Infolists\Components\TextEntry::make('notes')

@@ -34,13 +34,23 @@ class CreateReceivingReport extends CreateRecord
         if ($purchaseOrderId) {
             \Log::info('Receiving report created with PO ID: ' . $purchaseOrderId);
             
-            // Get the purchase order details for display
-            $purchaseOrder = PurchaseOrder::with(['supplier', 'items.product'])->find($purchaseOrderId);
+            // Get the purchase order details for display with better eager loading
+            $purchaseOrder = PurchaseOrder::with([
+                'supplier', 
+                'items.product' // Make sure the product relation is eager loaded
+            ])->find($purchaseOrderId);
             
             if ($purchaseOrder) {
                 // Add summary information about the PO
                 $this->form->fill([
                     'purchase_order_id' => $purchaseOrderId,
+                ]);
+                
+                // Debug the purchase order
+                \Log::info('Purchase Order Details', [
+                    'po_number' => $purchaseOrder->po_number,
+                    'supplier' => $purchaseOrder->supplier->name,
+                    'item_count' => $purchaseOrder->items->count()
                 ]);
                 
                 // Get all outstanding PO items with detailed information
@@ -56,8 +66,12 @@ class CreateReceivingReport extends CreateRecord
                 foreach ($poItems as $poItem) {
                     $product = $poItem->product;
                     
+                    // Add more detailed debugging
                     if (!$product) {
-                        \Log::warning('Product not found for PO item: ' . $poItem->id);
+                        \Log::warning('Product not found for PO item: ' . $poItem->id, [
+                            'product_id' => $poItem->product_id,
+                            'exists_in_db' => \App\Models\Product::where('id', $poItem->product_id)->exists()
+                        ]);
                         continue;
                     }
                     
@@ -224,6 +238,25 @@ class CreateReceivingReport extends CreateRecord
                             $item->addMedia(storage_path('app/public/' . $image))
                                 ->toMediaCollection('damage_images');
                         }
+                    }
+                }
+            }
+
+            // Process damaged box images
+            if ($this->data['has_damaged_boxes'] && !empty($this->data['damaged_box_images'])) {
+                // Add images to the media collection
+                foreach ($this->data['damaged_box_images'] as $image) {
+                    $this->record->addMedia(storage_path('app/public/' . $image))
+                        ->toMediaCollection('damaged_box_images');
+                }
+            }
+
+            // Process item damage images
+            foreach ($this->record->items as $item) {
+                if (!empty($itemData['damage_images'])) {
+                    foreach ($itemData['damage_images'] as $image) {
+                        $item->addMedia(storage_path('app/public/' . $image))
+                            ->toMediaCollection('damage_images');
                     }
                 }
             }
