@@ -77,11 +77,53 @@ class ReceivingReportResource extends Resource
                             ->searchable()
                             ->required()
                             ->visible(fn (Forms\Get $get) => (bool) $get('supplier_filter'))
-                            // Don't trigger item rebuild in edit mode
-                            ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                if (!request()->routeIs('*.edit')) {
-                                    // Clear existing items only in create mode
-                                    $set('items', []);
+                            // Add a live option to instantly trigger the PO items loading
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
+                                // Always reset items array when changing PO
+                                $set('items', []);
+                                
+                                // Skip if no PO selected
+                                if (!$state) {
+                                    return;
+                                }
+                                
+                                // Get all outstanding PO items with products
+                                $poItems = \App\Models\PurchaseOrderItem::where('purchase_order_id', $state)
+                                    ->whereRaw('quantity_received < quantity')
+                                    ->with('product')
+                                    ->get();
+                                
+                                if ($poItems->isEmpty()) {
+                                    return;
+                                }
+                                
+                                // Build items array for the form repeater
+                                $items = [];
+                                foreach ($poItems as $poItem) {
+                                    // Skip items without products
+                                    if (!$poItem->product) {
+                                        \Log::error("Product {$poItem->product_id} not found for PO item {$poItem->id}");
+                                        continue;
+                                    }
+                                    
+                                    $items[] = [
+                                        'purchase_order_item_id' => $poItem->id,
+                                        'product_id' => $poItem->product_id,
+                                        'quantity_ordered' => $poItem->quantity,
+                                        'quantity_received' => max(0, $poItem->quantity - $poItem->quantity_received),
+                                        'quantity_damaged' => 0,
+                                        'quantity_missing' => max(0, $poItem->quantity - $poItem->quantity_received),
+                                        'notes' => '',
+                                    ];
+                                }
+                                
+                                // Set the items in the form data
+                                if (!empty($items)) {
+                                    $set('items', $items);
+                                    \Log::info('Loaded ' . count($items) . ' items for receiving');
+                                } else {
+                                    \Log::warning('No items found to receive for PO #' . $state);
                                 }
                             }),
                         
@@ -153,10 +195,36 @@ class ReceivingReportResource extends Resource
                                         
                                         // Product info column
                                         Placeholder::make('product_info')
-                                            ->content(function (Forms\Get $get, $record) {
-                                                $productId = $get('product_id');
-                                                $product = Product::find($productId);
-                                                if (!$product) return 'Product not found';
+                                            ->content(function (Forms\Get $get) {
+                                                $poItemId = $get('purchase_order_item_id');
+                                                
+                                                // Show a different message when no PO is selected
+                                                if (empty($poItemId)) {
+                                                    return new HtmlString("
+                                                        <div class='text-sm p-2 rounded border border-warning-300 bg-warning-50'>
+                                                            <p>Please select a purchase order to see items</p>
+                                                        </div>
+                                                    ");
+                                                }
+                                                
+                                                // Get product directly via the purchase order item instead
+                                                $poItem = \App\Models\PurchaseOrderItem::with('product')->find($poItemId);
+                                                if (!$poItem) {
+                                                    return new HtmlString("
+                                                        <div class='text-sm p-2 rounded border border-danger-300 bg-danger-50'>
+                                                            <p class='text-danger-600'>Error: Item not found (ID: {$poItemId})</p>
+                                                        </div>
+                                                    ");
+                                                }
+                                                
+                                                $product = $poItem->product;
+                                                if (!$product) {
+                                                    return new HtmlString("
+                                                        <div class='text-sm p-2 rounded border border-danger-300 bg-danger-50'>
+                                                            <p class='text-danger-600'>Error: Product not found for item</p>
+                                                        </div>
+                                                    ");
+                                                }
                                                 
                                                 return new HtmlString("
                                                     <div class='text-sm'>
@@ -171,19 +239,23 @@ class ReceivingReportResource extends Resource
                                         Placeholder::make('already_received_info')
                                             ->content(function (Forms\Get $get) {
                                                 $poItemId = $get('purchase_order_item_id');
-                                                if (!$poItemId) return '';
+                                                if (!$poItemId) {
+                                                    return '';
+                                                }
                                                 
+                                                // Get the PO item directly
                                                 $poItem = \App\Models\PurchaseOrderItem::find($poItemId);
-                                                if (!$poItem) return '';
+                                                if (!$poItem) {
+                                                    return '';
+                                                }
                                                 
+                                                $ordered = $poItem->quantity;
                                                 $alreadyReceived = $poItem->quantity_received;
-                                                $total = $poItem->quantity;
-                                                $remaining = $total - $alreadyReceived;
+                                                $remaining = $ordered - $alreadyReceived;
                                                 
-                                                // Use CSS variables for color schemes that work in both light/dark mode
-                                                return new \Illuminate\Support\HtmlString("
+                                                return new HtmlString("
                                                     <div class='text-sm p-2 rounded border border-primary-300 bg-primary-50 dark:bg-primary-950 dark:border-primary-800'>
-                                                        <p class='font-medium text-primary-950 dark:text-primary-100'><strong>Ordered:</strong> {$total}</p>
+                                                        <p class='font-medium text-primary-950 dark:text-primary-100'><strong>Ordered:</strong> {$ordered}</p>
                                                         <p class='text-primary-800 dark:text-primary-300'><strong>Already Received:</strong> {$alreadyReceived}</p>
                                                         <p class='text-primary-700 dark:text-primary-400'><strong>Remaining:</strong> {$remaining}</p>
                                                     </div>
@@ -507,6 +579,21 @@ class ReceivingReportResource extends Resource
                             ])
                             ->columns(6),
                     ]),
+                
+                Infolists\Components\Section::make('Debug Info')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('debug_media')
+                            ->label('Media Info')
+                            ->getStateUsing(function ($record) {
+                                $boxMedia = $record->getMedia('damaged_box_images');
+                                
+                                return "Box Media: " . count($boxMedia) . " files\n" .
+                                       "Has damaged boxes flag: " . ($record->has_damaged_boxes ? 'Yes' : 'No') . "\n" . 
+                                       "Media paths: " . implode(', ', $boxMedia->map->getPath()->toArray());
+                            }),
+                    ])
+                    ->collapsed()
+                    ->visible(fn () => auth()->user()->hasRole('admin')),
             ]);
     }
 

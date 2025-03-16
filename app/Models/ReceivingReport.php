@@ -50,9 +50,14 @@ class ReceivingReport extends Model implements HasMedia
         return $this->belongsTo(User::class, 'received_by');
     }
 
+    /**
+     * Register the media collections
+     */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('damaged_box_images');
+        $this->addMediaCollection('damaged_box_images')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
     }
 
     public function registerMediaConversions(?Media $media = null): void

@@ -28,93 +28,59 @@ class CreateReceivingReport extends CreateRecord
     {
         parent::mount();
         
-        // Get purchase order ID from URL query parameter
-        $purchaseOrderId = request()->query('purchaseOrderId');
-        
+        // Handle purchase order selection from query parameters
+        $purchaseOrderId = request()->query('purchase_order_id');
         if ($purchaseOrderId) {
-            \Log::info('Receiving report created with PO ID: ' . $purchaseOrderId);
-            
-            // Get the purchase order details for display with better eager loading
             $purchaseOrder = PurchaseOrder::with([
                 'supplier', 
-                'items.product' // Make sure the product relation is eager loaded
+                'items.product' // Ensure products are eager loaded
             ])->find($purchaseOrderId);
             
             if ($purchaseOrder) {
-                // Add summary information about the PO
+                // Set the supplier and purchase order in the form
                 $this->form->fill([
-                    'purchase_order_id' => $purchaseOrderId,
+                    'supplier_filter' => $purchaseOrder->supplier_id,
+                    'purchase_order_id' => $purchaseOrder->id,
                 ]);
                 
-                // Debug the purchase order
-                \Log::info('Purchase Order Details', [
-                    'po_number' => $purchaseOrder->po_number,
-                    'supplier' => $purchaseOrder->supplier->name,
-                    'item_count' => $purchaseOrder->items->count()
-                ]);
-                
-                // Get all outstanding PO items with detailed information
-                $poItems = PurchaseOrderItem::where('purchase_order_id', $purchaseOrderId)
+                // Get all outstanding PO items with products
+                $poItems = PurchaseOrderItem::where('purchase_order_id', $purchaseOrder->id)
                     ->whereRaw('quantity_received < quantity')
                     ->with('product')
                     ->get();
                 
                 \Log::info('Found ' . $poItems->count() . ' items to receive');
                 
-                // Create an array of form items to match the repeater structure
                 $items = [];
                 foreach ($poItems as $poItem) {
-                    $product = $poItem->product;
+                    // Log debug information 
+                    \Log::info('Processing PO item', [
+                        'poItem_id' => $poItem->id,
+                        'product_id' => $poItem->product_id,
+                        'has_product' => isset($poItem->product),
+                        'product_name' => $poItem->product ? $poItem->product->name : 'NULL'
+                    ]);
                     
-                    // Add more detailed debugging
-                    if (!$product) {
-                        \Log::warning('Product not found for PO item: ' . $poItem->id, [
-                            'product_id' => $poItem->product_id,
-                            'exists_in_db' => \App\Models\Product::where('id', $poItem->product_id)->exists()
-                        ]);
+                    if (!$poItem->product) {
+                        \Log::error("Product {$poItem->product_id} not found for PO item {$poItem->id}");
                         continue;
                     }
-                    
-                    \Log::info('Adding item to receiving form', [
-                        'po_item_id' => $poItem->id,
-                        'product_id' => $poItem->product_id,
-                        'product_name' => $product->name,
-                        'product_sku' => $product->sku,
-                        'ordered' => $poItem->quantity,
-                        'received' => $poItem->quantity_received,
-                        'remaining' => $poItem->quantity - $poItem->quantity_received
-                    ]);
                     
                     $items[] = [
                         'purchase_order_item_id' => $poItem->id,
                         'product_id' => $poItem->product_id,
                         'quantity_ordered' => $poItem->quantity,
-                        'quantity_received' => $poItem->quantity - $poItem->quantity_received,
+                        'quantity_received' => max(0, $poItem->quantity - $poItem->quantity_received),
                         'quantity_damaged' => 0,
                         'quantity_missing' => 0,
                         'notes' => '',
                     ];
                 }
                 
-                // If we have items, set them in the form
                 if (count($items) > 0) {
                     $this->data['items'] = $items;
-                    
-                    // Important: this refreshes the form with the data
                     $this->fillForm();
-                    
-                    \Log::info('Pre-filled ' . count($items) . ' items for receiving');
-                } else {
-                    \Log::warning('No items to receive for PO #' . $purchaseOrder->po_number);
-                    
-                    Notification::make()
-                        ->title('No items to receive')
-                        ->body('This purchase order has no remaining items to receive.')
-                        ->warning()
-                        ->send();
                 }
-            } else {
-                \Log::warning('Purchase order not found: ' . $purchaseOrderId);
             }
         }
     }
@@ -148,8 +114,69 @@ class CreateReceivingReport extends CreateRecord
      */
     protected function afterCreate(): void
     {
-        // Get the receiving report that was just created
         $receivingReport = $this->record;
+        
+        // First, handle any box damage images
+        if ($this->data['has_damaged_boxes'] && !empty($this->data['damaged_box_images'])) {
+            // Log the images being processed
+            \Log::info('Processing damaged box images', [
+                'report_id' => $receivingReport->id,
+                'images' => $this->data['damaged_box_images']
+            ]);
+            
+            foreach ($this->data['damaged_box_images'] as $image) {
+                try {
+                    if (file_exists(storage_path('app/public/' . $image))) {
+                        $receivingReport->addMedia(storage_path('app/public/' . $image))
+                            ->toMediaCollection('damaged_box_images');
+                        
+                        \Log::info('Added box damage image', ['path' => $image]);
+                    } else {
+                        \Log::error('Box damage image not found', ['path' => $image]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error adding box damage image', [
+                        'error' => $e->getMessage(), 
+                        'path' => $image
+                    ]);
+                }
+            }
+        }
+        
+        // Then handle item damage images for each item
+        foreach ($receivingReport->items as $index => $item) {
+            $itemData = $this->data['items'][$index] ?? null;
+            if (!$itemData) continue;
+            
+            $damageImages = $itemData['damage_images'] ?? [];
+            
+            if (!empty($damageImages)) {
+                \Log::info('Processing item damage images', [
+                    'item_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'image_count' => count($damageImages)
+                ]);
+                
+                foreach ($damageImages as $image) {
+                    try {
+                        if (file_exists(storage_path('app/public/' . $image))) {
+                            $item->addMedia(storage_path('app/public/' . $image))
+                                ->toMediaCollection('damage_images');
+                            
+                            \Log::info('Added item damage image', ['path' => $image]);
+                        } else {
+                            \Log::error('Item damage image not found', ['path' => $image]);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Error adding item damage image', [
+                            'error' => $e->getMessage(), 
+                            'path' => $image
+                        ]);
+                    }
+                }
+            }
+        }
+
         $purchaseOrder = PurchaseOrder::findOrFail($receivingReport->purchase_order_id);
         
         DB::beginTransaction();
