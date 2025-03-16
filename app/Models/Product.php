@@ -178,4 +178,18 @@ class Product extends Model implements HasMedia
     {
         return $this->hasMany(TransactionItem::class);
     }
+
+    // Add this relationship method to your Product model
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'product_supplier')
+            ->withPivot(['cost_price', 'supplier_sku', 'is_preferred'])
+            ->withTimestamps();
+    }
+
+    // Also add a simpler accessor for the primary supplier if needed
+    public function primarySupplier()
+    {
+        return $this->suppliers()->first();
+    }
 }

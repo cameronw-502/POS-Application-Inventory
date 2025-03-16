@@ -26,10 +26,17 @@ class Supplier extends Model
         'contact_phone',
         'notes',
         'status',
+        'default_payment_terms',
+        'default_shipping_method',
     ];
 
     public function purchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_supplier');
     }
 }

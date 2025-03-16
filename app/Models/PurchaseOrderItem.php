@@ -17,6 +17,7 @@ class PurchaseOrderItem extends Model
         'unit_price',
         'subtotal',
         'quantity_received',
+        'note' // Make sure this is here
     ];
 
     protected $casts = [
@@ -36,6 +37,11 @@ class PurchaseOrderItem extends Model
             if (!isset($model->quantity_received)) {
                 $model->quantity_received = 0;
             }
+            $model->subtotal = $model->quantity * $model->unit_price;
+        });
+
+        static::updating(function ($model) {
+            $model->subtotal = $model->quantity * $model->unit_price;
         });
     }
 

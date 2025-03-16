@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 
 class SupplierResource extends Resource
 {
@@ -16,7 +18,7 @@ class SupplierResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
     
-    protected static ?string $navigationGroup = 'Inventory';
+    protected static ?string $navigationGroup = 'Inventory Management';
     
     protected static ?int $navigationSort = 20;
 
@@ -81,6 +83,35 @@ class SupplierResource extends Resource
                             ->maxLength(65535)
                             ->columnSpanFull(),
                     ]),
+                    
+                Forms\Components\Section::make('Default Terms')
+                    ->schema([
+                        Forms\Components\Select::make('default_payment_terms')
+                            ->label('Default Payment Terms')
+                            ->options([
+                                'net_15' => 'Net 15 Days',
+                                'net_30' => 'Net 30 Days',
+                                'net_45' => 'Net 45 Days',
+                                'net_60' => 'Net 60 Days',
+                                'cash_on_delivery' => 'Cash on Delivery',
+                                'prepaid' => 'Prepaid',
+                            ])
+                            ->default('net_30')
+                            ->helperText('These terms will be automatically applied to new purchase orders'),
+                            
+                        Forms\Components\Select::make('default_shipping_method')
+                            ->label('Default Shipping Method')
+                            ->options([
+                                'standard' => 'Standard Shipping',
+                                'express' => 'Express Shipping',
+                                'pickup' => 'Customer Pickup',
+                                'freight' => 'Freight',
+                                'courier' => 'Courier',
+                            ])
+                            ->default('standard')
+                            ->helperText('This shipping method will be automatically applied to new purchase orders'),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -147,5 +178,78 @@ class SupplierResource extends Resource
             'create' => Pages\CreateSupplier::route('/create'),
             'edit' => Pages\EditSupplier::route('/{record}/edit'),
         ];
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\Section::make('Default Terms')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('default_payment_terms')
+                            ->label('Default Payment Terms')
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'net_15' => 'Net 15 Days',
+                                'net_30' => 'Net 30 Days',
+                                'net_45' => 'Net 45 Days',
+                                'net_60' => 'Net 60 Days',
+                                'cash_on_delivery' => 'Cash on Delivery',
+                                'prepaid' => 'Prepaid',
+                                default => $state,
+                            }),
+                            
+                        Infolists\Components\TextEntry::make('default_shipping_method')
+                            ->label('Default Shipping Method')
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'standard' => 'Standard Shipping',
+                                'express' => 'Express Shipping',
+                                'pickup' => 'Customer Pickup',
+                                'freight' => 'Freight',
+                                'courier' => 'Courier',
+                                default => $state,
+                            }),
+                    ])
+                    ->columns(2),
+                    
+                Infolists\Components\Section::make('Supplier Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('name'),
+                        Infolists\Components\TextEntry::make('email'),
+                        Infolists\Components\TextEntry::make('phone'),
+                        Infolists\Components\TextEntry::make('website'),
+                        Infolists\Components\TextEntry::make('status')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'active' => 'success',
+                                'inactive' => 'danger',
+                                default => 'gray',
+                            }),
+                    ])
+                    ->columns(3),
+                    
+                Infolists\Components\Section::make('Address Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('address'),
+                        Infolists\Components\TextEntry::make('city'),
+                        Infolists\Components\TextEntry::make('state'),
+                        Infolists\Components\TextEntry::make('postal_code'),
+                        Infolists\Components\TextEntry::make('country'),
+                    ])
+                    ->columns(3),
+                    
+                Infolists\Components\Section::make('Contact Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('contact_name'),
+                        Infolists\Components\TextEntry::make('contact_email'),
+                        Infolists\Components\TextEntry::make('contact_phone'),
+                    ])
+                    ->columns(3),
+                    
+                Infolists\Components\Section::make('Notes')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('notes')
+                            ->markdown(),
+                    ]),
+            ]);
     }
 }

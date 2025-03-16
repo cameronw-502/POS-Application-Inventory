@@ -18,6 +18,7 @@ use Filament\Support\Enums\ActionSize;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Blade;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Str;
 
 class PurchaseOrderResource extends Resource
 {
@@ -33,156 +34,223 @@ class PurchaseOrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Group::make()
+                Forms\Components\Section::make('Purchase Order Details')
                     ->schema([
-                        Forms\Components\Section::make('Purchase Order Information')
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Supplier')
+                            ->options(function () {
+                                return Supplier::where('status', 'active')
+                                    ->pluck('name', 'id');
+                            })
+                            ->required()
+                            ->searchable()
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
+                                // Clear items when supplier changes
+                                $set('items', []);
+                                
+                                // If a supplier is selected, get their default terms
+                                if ($state) {
+                                    $supplier = Supplier::find($state);
+                                    if ($supplier) {
+                                        $set('payment_terms', $supplier->default_payment_terms ?? 'net_30');
+                                        $set('shipping_method', $supplier->default_shipping_method ?? 'standard');
+                                    }
+                                }
+                            }),
+                        
+                        Forms\Components\TextInput::make('po_number')
+                            ->label('PO Number')
+                            ->default(function () {
+                                return 'PO-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+                            })
+                            ->required()
+                            ->unique(ignoreRecord: true),
+                            
+                        Forms\Components\DatePicker::make('order_date')
+                            ->required()
+                            ->default(now()),
+                            
+                        Forms\Components\DatePicker::make('expected_delivery_date')
+                            ->required(),
+                        
+                        Forms\Components\Select::make('payment_terms')
+                            ->label('Payment Terms')
+                            ->options([
+                                'net_15' => 'Net 15 Days',
+                                'net_30' => 'Net 30 Days',
+                                'net_45' => 'Net 45 Days',
+                                'net_60' => 'Net 60 Days',
+                                'cash_on_delivery' => 'Cash on Delivery',
+                                'prepaid' => 'Prepaid',
+                            ])
+                            ->default(function (Forms\Get $get) {
+                                $supplierId = $get('supplier_id');
+                                if (!$supplierId) return 'net_30';
+                                
+                                $supplier = Supplier::find($supplierId);
+                                return $supplier->default_payment_terms ?? 'net_30';
+                            })
+                            ->live()
+                            ->required(),
+                            
+                        Forms\Components\Select::make('shipping_method')
+                            ->label('Shipping Method')
+                            ->options([
+                                'standard' => 'Standard Shipping',
+                                'express' => 'Express Shipping',
+                                'pickup' => 'Customer Pickup',
+                                'freight' => 'Freight',
+                                'courier' => 'Courier',
+                            ])
+                            ->default(function (Forms\Get $get) {
+                                $supplierId = $get('supplier_id');
+                                if (!$supplierId) return 'standard';
+                                
+                                $supplier = Supplier::find($supplierId);
+                                return $supplier->default_shipping_method ?? 'standard';
+                            })
+                            ->live()
+                            ->required(),
+                        
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'draft' => 'Draft',
+                                'ordered' => 'Ordered',
+                                'partially_received' => 'Partially Received',
+                                'received' => 'Received',
+                                'cancelled' => 'Cancelled',
+                            ])
+                            ->default('draft')
+                            ->required(),
+                            
+                        Forms\Components\Textarea::make('notes')
+                            ->rows(3),
+                    ]),
+                
+                Forms\Components\Section::make('Order Items')
+                    ->schema([
+                        Forms\Components\Repeater::make('items')
+                            ->relationship()
                             ->schema([
-                                Forms\Components\Hidden::make('created_by')
-                                    ->default(auth()->id()),
-                                    
-                                Forms\Components\TextInput::make('po_number')
-                                    ->label('PO Number')
-                                    ->default(fn () => PurchaseOrder::generatePONumber())
-                                    ->required()
-                                    ->unique(ignoreRecord: true)
-                                    ->disabled()
-                                    ->dehydrated(),
-                                    
-                                Forms\Components\Select::make('supplier_id')
-                                    ->label('Supplier')
-                                    ->relationship('supplier', 'name')
+                                Forms\Components\Select::make('product_id')
+                                    ->label('Product')
+                                    ->options(function (Forms\Get $get) {
+                                        $supplierId = $get('../../supplier_id');
+                                        
+                                        if (!$supplierId) {
+                                            return [];
+                                        }
+                                        
+                                        // Get all products linked to this supplier
+                                        return Product::whereHas('suppliers', function ($query) use ($supplierId) {
+                                            $query->where('supplier_id', $supplierId);
+                                        })
+                                        ->pluck('name', 'id');
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->required()
-                                    ->createOptionForm([
-                                        Forms\Components\TextInput::make('name')
-                                            ->required(),
-                                        Forms\Components\TextInput::make('email')
-                                            ->email(),
-                                        Forms\Components\TextInput::make('phone')
-                                            ->tel(),
-                                    ]),
-                                    
-                                Forms\Components\DatePicker::make('order_date')
-                                    ->label('Order Date')
-                                    ->default(now())
-                                    ->required(),
-                                    
-                                Forms\Components\DatePicker::make('expected_delivery_date')
-                                    ->label('Expected Delivery Date')
-                                    ->minDate(fn (Forms\Get $get) => $get('order_date')),
-                                    
-                                Forms\Components\Select::make('status')
-                                    ->options([
-                                        'draft' => 'Draft',
-                                        'ordered' => 'Ordered',
-                                        'partially_received' => 'Partially Received',
-                                        'received' => 'Received',
-                                        'cancelled' => 'Cancelled',
-                                    ])
-                                    ->default('draft')
-                                    ->required(),
-                                    
-                                Forms\Components\TextInput::make('payment_terms')
-                                    ->label('Payment Terms'),
-                                    
-                                Forms\Components\TextInput::make('shipping_method')
-                                    ->label('Shipping Method'),
-                            ])
-                            ->columns(2),
-                            
-                        Forms\Components\Section::make('Purchase Order Items')
-                            ->schema([
-                                Forms\Components\Repeater::make('items')
-                                    ->relationship()
-                                    ->schema([
-                                        Forms\Components\Select::make('product_id')
-                                            ->label('Product')
-                                            ->relationship('product', 'name')
-                                            ->searchable()
-                                            ->preload()
-                                            ->required()
-                                            ->reactive()
-                                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                                if ($state) {
-                                                    $product = Product::find($state);
-                                                    $set('unit_price', $product->cost_price ?? $product->price);
-                                                } else {
-                                                    $set('unit_price', null);
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        if ($state) {
+                                            $product = Product::find($state);
+                                            
+                                            // Get the cost price from the pivot table if available
+                                            $supplier_id = $get('../../supplier_id');
+                                            if ($supplier_id) {
+                                                $productSupplier = \DB::table('product_supplier')
+                                                    ->where('product_id', $state)
+                                                    ->where('supplier_id', $supplier_id)
+                                                    ->first();
+                                                    
+                                                if ($productSupplier && $productSupplier->cost_price) {
+                                                    $set('unit_price', $productSupplier->cost_price);
+                                                    return;
                                                 }
-                                            }),
+                                            }
                                             
-                                        Forms\Components\TextInput::make('quantity')
-                                            ->numeric()
-                                            ->default(1)
-                                            ->required()
-                                            ->minValue(1)
-                                            ->reactive()
-                                            ->afterStateUpdated(function ($state, $context, Forms\Set $set, Forms\Get $get) {
-                                                if ($state && $get('unit_price')) {
-                                                    $set('subtotal', $state * $get('unit_price'));
-                                                }
-                                            }),
-                                            
-                                        Forms\Components\TextInput::make('unit_price')
-                                            ->numeric()
-                                            ->required()
-                                            ->prefix('$')
-                                            ->reactive()
-                                            ->afterStateUpdated(function ($state, $context, Forms\Set $set, Forms\Get $get) {
-                                                if ($state && $get('quantity')) {
-                                                    $set('subtotal', $state * $get('quantity'));
-                                                }
-                                            }),
-                                            
-                                        Forms\Components\TextInput::make('subtotal')
-                                            ->numeric()
-                                            ->prefix('$')
-                                            ->disabled()
-                                            ->dehydrated(),
-                                            
-                                        Forms\Components\Hidden::make('quantity_received')
-                                            ->default(0),
-                                    ])
-                                    ->columns(4)
-                                    ->defaultItems(1)
-                                    ->addActionLabel('Add Product')
-                                    ->reorderable(false)
-                                    ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => 
-                                        $state['product_id'] ? Product::find($state['product_id'])?->name : null),
-                            ]),
-                    ])
-                    ->columnSpan(['lg' => 2]),
-                    
-                Forms\Components\Group::make()
-                    ->schema([
-                        Forms\Components\Section::make('Summary')
-                            ->schema([
-                                Forms\Components\Placeholder::make('total_amount_label')
-                                    ->label('Total Amount')
-                                    ->content(function ($get) {
-                                        $total = 0;
-                                        
-                                        foreach ($get('items') ?? [] as $item) {
-                                            $total += $item['subtotal'] ?? 0;
+                                            // Fallback to product's cost price or regular price
+                                            $set('unit_price', $product->cost_price ?? $product->price);
+                                        } else {
+                                            $set('unit_price', null);
                                         }
-                                        
-                                        return '$' . number_format($total, 2);
+                                    })
+                                    ->disabled(fn (Forms\Get $get) => !$get('../../supplier_id')),
+                                    
+                                Forms\Components\TextInput::make('quantity')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $unitPrice = $get('unit_price') ?? 0;
+                                        $subtotal = $state * $unitPrice;
+                                        $set('subtotal', $subtotal);
                                     }),
                                     
-                                Forms\Components\Hidden::make('total_amount')
-                                    ->default(0)
-                                    ->dehydrated(),
+                                Forms\Components\TextInput::make('unit_price')
+                                    ->label('Unit Price')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $quantity = $get('quantity') ?? 0;
+                                        $subtotal = $state * $quantity;
+                                        $set('subtotal', $subtotal);
+                                    }),
                                     
-                                Forms\Components\Textarea::make('notes')
-                                    ->label('Notes')
-                                    ->columnSpan('full'),
-                            ]),
+                                Forms\Components\TextInput::make('subtotal')
+                                    ->label('Subtotal')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->disabled()
+                                    ->default(0),
+                                    
+                                Forms\Components\TextInput::make('note')
+                                    ->maxLength(255),
+                            ])
+                            ->columns(4)
+                            ->itemLabel(fn (array $state): ?string => 
+                                $state['product_id'] ? 
+                                    Product::find($state['product_id'])?->name . ' (Qty: ' . ($state['quantity'] ?? '?') . ')' : 
+                                    null
+                            )
+                            ->defaultItems(0)
+                            ->reorderable(false)
+                            ->cloneable()
+                            ->required()
+                            ->columnSpanFull(),
+                            
+                        Forms\Components\Placeholder::make('calculated_totals')
+                            ->label('Calculated Totals')
+                            ->content(function (Forms\Get $get) {
+                                $items = $get('items') ?? [];
+                                $subtotal = 0;
+                                
+                                foreach ($items as $item) {
+                                    if (isset($item['subtotal'])) {
+                                        $subtotal += floatval($item['subtotal']);
+                                    } elseif (isset($item['unit_price']) && isset($item['quantity'])) {
+                                        $subtotal += floatval($item['unit_price']) * floatval($item['quantity']);
+                                    }
+                                }
+                                
+                                $tax = $subtotal * 0.1; // Assuming 10% tax
+                                $total = $subtotal + $tax;
+                                
+                                return new \Illuminate\Support\HtmlString(
+                                    view('components.purchase-order-totals', [
+                                        'subtotal' => $subtotal,
+                                        'tax' => $tax,
+                                        'total' => $total
+                                    ])->render()
+                                );
+                            }),
                     ])
-                    ->columnSpan(['lg' => 1]),
-            ])
-            ->columns(3);
+                    ->visible(fn (Forms\Get $get) => (bool) $get('supplier_id')),
+            ]);
     }
 
     public static function table(Table $table): Table

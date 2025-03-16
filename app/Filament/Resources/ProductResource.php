@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
 use App\Models\Department;
 use App\Models\Category;
+use App\Models\Supplier;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,7 +19,9 @@ use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
-use Illuminate\Database\Eloquent\Collection; // Add this import
+use Illuminate\Database\Eloquent\Collection;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 
 class ProductResource extends Resource
 {
@@ -99,6 +102,63 @@ class ProductResource extends Resource
                     ->multiple()
                     ->maxFiles(5)
                     ->columnSpanFull(),
+
+                Forms\Components\Section::make('Supplier Information')
+                    ->schema([
+                        Forms\Components\Repeater::make('suppliers')
+                            ->schema([
+                                Forms\Components\Select::make('supplier_id')
+                                    ->label('Supplier')
+                                    ->options(function () {
+                                        return Supplier::where('status', 'active')
+                                            ->pluck('name', 'id');
+                                    })
+                                    ->searchable()
+                                    ->required()
+                                    ->reactive()
+                                    ->createOptionForm([
+                                        Forms\Components\TextInput::make('name')
+                                            ->required()
+                                            ->maxLength(255),
+                                        Forms\Components\TextInput::make('email')
+                                            ->email()
+                                            ->maxLength(255),
+                                        Forms\Components\TextInput::make('phone')
+                                            ->tel()
+                                            ->maxLength(255),
+                                        Forms\Components\Select::make('status')
+                                            ->options([
+                                                'active' => 'Active',
+                                                'inactive' => 'Inactive',
+                                            ])
+                                            ->default('active')
+                                            ->required(),
+                                    ])
+                                    ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                        return $action
+                                            ->modalHeading('Create new supplier')
+                                            ->modalSubmitActionLabel('Create supplier');
+                                    }),
+                                    
+                                Forms\Components\TextInput::make('cost_price')
+                                    ->label('Cost Price')
+                                    ->numeric()
+                                    ->prefix('$'),
+                                    
+                                Forms\Components\TextInput::make('supplier_sku')
+                                    ->label('Supplier SKU'),
+                                    
+                                Forms\Components\Toggle::make('is_preferred')
+                                    ->label('Preferred Supplier'),
+                            ])
+                            ->columns(4)
+                            ->defaultItems(0)
+                            ->itemLabel(fn (array $state): ?string => 
+                                $state['supplier_id'] ? 
+                                Supplier::find($state['supplier_id'])?->name : 
+                                null
+                            ),
+                    ]),
             ]);
     }
 
@@ -198,6 +258,32 @@ class ProductResource extends Resource
                             ->success()
                             ->send();
                     }),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                // Your existing sections...
+                
+                Infolists\Components\Section::make('Suppliers')
+                    ->schema([
+                        Infolists\Components\RepeatableEntry::make('suppliers')
+                            ->schema([
+                                Infolists\Components\TextEntry::make('name')
+                                    ->label('Supplier'),
+                                Infolists\Components\TextEntry::make('pivot.cost_price')
+                                    ->label('Cost Price')
+                                    ->money('USD'),
+                                Infolists\Components\TextEntry::make('pivot.supplier_sku')
+                                    ->label('Supplier SKU'),
+                                Infolists\Components\IconEntry::make('pivot.is_preferred')
+                                    ->label('Preferred')
+                                    ->boolean(),
+                            ])
+                            ->columns(4),
+                    ]),
             ]);
     }
 

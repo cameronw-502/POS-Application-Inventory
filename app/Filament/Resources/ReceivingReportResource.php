@@ -25,7 +25,7 @@ class ReceivingReportResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
     
-    protected static ?string $navigationGroup = 'Inventory';
+    protected static ?string $navigationGroup = 'Inventory Management';
     
     protected static ?int $navigationSort = 30;
     
