@@ -72,25 +72,21 @@ class CreateProduct extends CreateRecord
         
         foreach ($supplierData as $data) {
             if (!empty($data['supplier_id'])) {
-                $suppliersToSync[$data['supplier_id']] = [
-                    'cost_price' => $data['cost_price'] ?? null,
-                    'supplier_sku' => $data['supplier_sku'] ?? null,
-                    'is_preferred' => $data['is_preferred'] ?? false,
-                ];
+                // Ensure the supplier_id exists in the suppliers table
+                $supplier = \App\Models\Supplier::find($data['supplier_id']);
+                
+                if ($supplier) {
+                    $suppliersToSync[$data['supplier_id']] = [
+                        'cost_price' => $data['cost_price'] ?? null,
+                        'supplier_sku' => $data['supplier_sku'] ?? null,
+                        'is_preferred' => $data['is_preferred'] ?? false,
+                    ];
+                }
             }
         }
         
-        // Get current suppliers
-        $currentSupplierIds = $product->suppliers()->pluck('supplier_id')->toArray();
-        
-        // Only sync the new suppliers, don't remove existing ones that might have been 
-        // temporarily removed from the form
-        foreach ($suppliersToSync as $supplierId => $pivotData) {
-            if (!in_array($supplierId, $currentSupplierIds)) {
-                $product->suppliers()->attach($supplierId, $pivotData);
-            } else {
-                $product->suppliers()->updateExistingPivot($supplierId, $pivotData);
-            }
+        if (!empty($suppliersToSync)) {
+            $product->suppliers()->attach($suppliersToSync);
         }
     }
 

@@ -42,6 +42,9 @@ class EditProduct extends EditRecord
                     
                     // Create a variation for each color/size combination
                     $count = 0;
+                    $baseSkuPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $product->name), 0, 3));
+                    $baseSkuNumber = str_pad($product->id, 6, '0', STR_PAD_LEFT);
+                    
                     foreach ($colors as $color) {
                         foreach ($sizes as $size) {
                             // Check if this combination already exists
@@ -51,18 +54,39 @@ class EditProduct extends EditRecord
                                 ->exists();
                                 
                             if (!$exists) {
-                                ProductVariant::create([
+                                // Generate a unique SKU for this variation
+                                $colorCode = strtoupper(substr($color->name, 0, 2));
+                                $sizeCode = strtoupper(substr($size->name, 0, 2));
+                                $sku = "{$baseSkuPrefix}-{$baseSkuNumber}-{$colorCode}{$sizeCode}";
+                                
+                                // Create the variant
+                                $variant = ProductVariant::create([
                                     'product_id' => $product->id,
-                                    'name' => "{$color->name}, {$size->name}",
+                                    'name' => "{$product->name} - {$color->name}, {$size->name}",
+                                    'sku' => $sku,
                                     'color_id' => $color->id,
                                     'size_id' => $size->id,
+                                    'price' => $product->price,
                                     'stock_quantity' => 0,
+                                    'description' => $product->description,
                                     // Inherit parent attributes
                                     'weight' => $product->weight,
                                     'width' => $product->width,
                                     'height' => $product->height,
                                     'length' => $product->length,
                                 ]);
+                                
+                                // Copy supplier relationships if they exist
+                                $productSuppliers = $product->suppliers()->get();
+                                foreach ($productSuppliers as $supplier) {
+                                    $pivotData = [
+                                        'cost_price' => $supplier->pivot->cost_price,
+                                        'supplier_sku' => $supplier->pivot->supplier_sku . "-{$colorCode}{$sizeCode}",
+                                        'is_preferred' => $supplier->pivot->is_preferred,
+                                    ];
+                                    $variant->suppliers()->attach($supplier->id, $pivotData);
+                                }
+                                
                                 $count++;
                             }
                         }
@@ -95,20 +119,25 @@ class EditProduct extends EditRecord
         
         // Handle suppliers relationship
         if (isset($this->data['suppliers']) && is_array($this->data['suppliers'])) {
-            $suppliersData = [];
+            $suppliersToSync = [];
             
-            foreach ($this->data['suppliers'] as $supplierData) {
-                if (!empty($supplierData['supplier_id'])) {
-                    $suppliersData[$supplierData['supplier_id']] = [
-                        'cost_price' => $supplierData['cost_price'] ?? null,
-                        'supplier_sku' => $supplierData['supplier_sku'] ?? null,
-                        'is_preferred' => $supplierData['is_preferred'] ?? false,
-                    ];
+            foreach ($this->data['suppliers'] as $data) {
+                if (!empty($data['supplier_id'])) {
+                    // Ensure the supplier_id exists in the suppliers table
+                    $supplier = \App\Models\Supplier::find($data['supplier_id']);
+                    
+                    if ($supplier) {
+                        $suppliersToSync[$data['supplier_id']] = [
+                            'cost_price' => $data['cost_price'] ?? null,
+                            'supplier_sku' => $data['supplier_sku'] ?? null,
+                            'is_preferred' => $data['is_preferred'] ?? false,
+                        ];
+                    }
                 }
             }
             
-            if (!empty($suppliersData)) {
-                $product->suppliers()->sync($suppliersData);
+            if (!empty($suppliersToSync)) {
+                $product->suppliers()->sync($suppliersToSync);
             }
         }
     }
