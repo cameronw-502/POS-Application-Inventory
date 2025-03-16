@@ -142,7 +142,7 @@ class PurchaseOrderResource extends Resource
                                             return [];
                                         }
                                         
-                                        // Get all products linked to this supplier
+                                        // CORRECTED QUERY: Use proper relationship query
                                         return Product::whereHas('suppliers', function ($query) use ($supplierId) {
                                             $query->where('supplier_id', $supplierId);
                                         })

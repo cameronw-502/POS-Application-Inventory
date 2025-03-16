@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
+use App\Models\Supplier;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
@@ -11,93 +12,84 @@ class CreateProduct extends CreateRecord
 {
     protected static string $resource = ProductResource::class;
     
-    // Make this form full width correctly
     protected ?string $maxContentWidth = 'full';
-    
-    // Change this to match Filament's expected property
     protected ?int $columnSpan = 12;
-    
     protected ?string $maxWidth = 'full';
     protected ?string $contentWidth = 'full';
-    
-    // Before the record is created, validate supplier data
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        // Check if there are suppliers to be linked
-        if (isset($data['suppliers']) && is_array($data['suppliers'])) {
-            foreach ($data['suppliers'] as $key => $supplierData) {
-                // If supplier_id is empty or null, remove this entry to prevent creating a new supplier
-                if (empty($supplierData['supplier_id'])) {
-                    unset($data['suppliers'][$key]);
-                }
-            }
-        }
-        
-        return $data;
-    }
-    
+
+    // Remove the mutateFormDataBeforeCreate method - we'll handle all supplier logic in afterCreate
+
     protected function handleRecordCreation(array $data): Model
     {
         try {
             // Log the data being sent to the create method
             \Log::info('Creating product with data:', [
                 'data' => $data,
-                'suppliers' => $data['suppliers'] ?? 'none'
+                'suppliers' => $data['single_supplier_id'] ?? 'none'
             ]);
             
-            return static::getModel()::create($data);
+            // Remove supplier fields from data before creating product
+            $supplierFields = ['single_supplier_id', 'supplier_price', 'supplier_sku', 'supplier_unit_type', 'supplier_unit_quantity'];
+            $productData = array_diff_key($data, array_flip($supplierFields));
+            
+            return static::getModel()::create($productData);
         } catch (\Exception $e) {
-            // Log the error
             \Log::error('Product creation failed: ' . $e->getMessage(), [
                 'data' => $data,
                 'trace' => $e->getTraceAsString(),
             ]);
             
-            // Show a notification to the user
             Notification::make()
                 ->title('Error creating product')
                 ->body('There was a problem creating this product: ' . $e->getMessage())
                 ->danger()
                 ->send();
                 
-            // Re-throw the exception
             throw $e;
         }
     }
-    
-    // Replace the existing method with this improved version
-    protected function handleSupplierRelationship($product, $supplierData)
-    {
-        $suppliersToSync = [];
-        
-        foreach ($supplierData as $data) {
-            if (!empty($data['supplier_id'])) {
-                // Ensure the supplier_id exists in the suppliers table
-                $supplier = \App\Models\Supplier::find($data['supplier_id']);
-                
-                if ($supplier) {
-                    $suppliersToSync[$data['supplier_id']] = [
-                        'cost_price' => $data['cost_price'] ?? null,
-                        'supplier_sku' => $data['supplier_sku'] ?? null,
-                        'is_preferred' => $data['is_preferred'] ?? false,
-                    ];
-                }
-            }
-        }
-        
-        if (!empty($suppliersToSync)) {
-            $product->suppliers()->attach($suppliersToSync);
-        }
-    }
 
-    // Then update your afterCreate and afterSave methods:
     protected function afterCreate(): void
     {
         $product = $this->record;
+        $supplierId = $this->data['single_supplier_id'] ?? null;
         
-        // Handle suppliers relationship
-        if (isset($this->data['suppliers']) && is_array($this->data['suppliers'])) {
-            $this->handleSupplierRelationship($product, $this->data['suppliers']);
+        if ($supplierId) {
+            try {
+                // Clear any existing suppliers just to be safe
+                $product->suppliers()->detach();
+                
+                // Save to the pivot table with explicit values
+                $product->suppliers()->attach($supplierId, [
+                    'cost_price' => $this->data['supplier_price'] ?? 0,
+                    'supplier_sku' => $this->data['supplier_sku'] ?? '',
+                    'is_preferred' => true,
+                    'sort' => 0,
+                ]);
+                
+                // Save supplier unit information directly on the product
+                $product->update([
+                    'supplier_unit_type' => $this->data['supplier_unit_type'] ?? 'single',
+                    'supplier_unit_quantity' => $this->data['supplier_unit_quantity'] ?? 1,
+                ]);
+                
+                \Log::info('Supplier attached successfully', [
+                    'product_id' => $product->id,
+                    'supplier_id' => $supplierId
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to attach supplier: ' . $e->getMessage(), [
+                    'product_id' => $product->id,
+                    'supplier_id' => $supplierId,
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                Notification::make()
+                    ->title('Supplier Not Saved')
+                    ->body('There was a problem saving the supplier information: ' . $e->getMessage())
+                    ->warning()
+                    ->send();
+            }
         }
     }
 }

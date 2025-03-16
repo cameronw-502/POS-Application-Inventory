@@ -29,20 +29,19 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        if (!Schema::hasTable('product_supplier')) {
-            Schema::create('product_supplier', function (Blueprint $table) {
-                $table->id();
-                $table->foreignId('product_id')->constrained()->onDelete('cascade');
-                $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
-                $table->decimal('cost_price', 10, 2)->nullable();
-                $table->string('supplier_sku')->nullable();
-                $table->boolean('is_preferred')->default(false);
-                $table->timestamps();
-
-                // Create a unique constraint to prevent duplicate relationships
-                $table->unique(['product_id', 'supplier_id']);
-            });
-        }
+        Schema::create('product_supplier', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
+            $table->decimal('cost_price', 10, 2)->nullable();
+            $table->string('supplier_sku')->nullable();
+            $table->boolean('is_preferred')->default(false);
+            $table->integer('sort')->nullable();
+            $table->timestamps();
+            
+            // Add unique constraint for product-supplier combination
+            $table->unique(['product_id', 'supplier_id']);
+        });
     }
 
     public function down()

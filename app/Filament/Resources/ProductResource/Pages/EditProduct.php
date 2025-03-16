@@ -3,8 +3,14 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
+use App\Models\Color;
+use App\Models\Size;
+use App\Models\ProductVariant;
+use App\Models\Supplier;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Collection;
 
 class EditProduct extends EditRecord
 {
@@ -59,7 +65,7 @@ class EditProduct extends EditRecord
                                 $sizeCode = strtoupper(substr($size->name, 0, 2));
                                 $sku = "{$baseSkuPrefix}-{$baseSkuNumber}-{$colorCode}{$sizeCode}";
                                 
-                                // Create the variant
+                                // Create the variant with inherited attributes from parent
                                 $variant = ProductVariant::create([
                                     'product_id' => $product->id,
                                     'name' => "{$product->name} - {$color->name}, {$size->name}",
@@ -69,16 +75,18 @@ class EditProduct extends EditRecord
                                     'price' => $product->price,
                                     'stock_quantity' => 0,
                                     'description' => $product->description,
-                                    // Inherit parent attributes
+                                    // Inherit all parent attributes
                                     'weight' => $product->weight,
                                     'width' => $product->width,
                                     'height' => $product->height,
                                     'length' => $product->length,
+                                    // Add any other attributes you want to inherit
                                 ]);
                                 
                                 // Copy supplier relationships if they exist
                                 $productSuppliers = $product->suppliers()->get();
                                 foreach ($productSuppliers as $supplier) {
+                                    // For each variant, maintain the same supplier but with a suffix for supplier_sku
                                     $pivotData = [
                                         'cost_price' => $supplier->pivot->cost_price,
                                         'supplier_sku' => $supplier->pivot->supplier_sku . "-{$colorCode}{$sizeCode}",
@@ -112,32 +120,85 @@ class EditProduct extends EditRecord
         ];
     }
 
-    // Add this method to properly save the suppliers
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $supplier = $this->record->suppliers()->first();
+    
+        if ($supplier) {
+            $data['single_supplier_id'] = $supplier->id;
+            $data['supplier_price'] = $supplier->pivot->cost_price;
+            $data['supplier_sku'] = $supplier->pivot->supplier_sku;
+        }
+        
+        // Load existing product-supplier relationships into the form
+        $supplierData = $this->record->suppliers()
+            ->withPivot(['cost_price', 'supplier_sku', 'is_preferred', 'sort'])
+            ->get()
+            ->map(function ($supplier) {
+                return [
+                    'supplier_id' => $supplier->id,
+                    'cost_price' => $supplier->pivot->cost_price,
+                    'supplier_sku' => $supplier->pivot->supplier_sku,
+                    'is_preferred' => (bool) $supplier->pivot->is_preferred,
+                    'sort' => $supplier->pivot->sort ?? 0,
+                ];
+            })
+            ->toArray();
+        
+        $data['supplier_data'] = $supplierData;
+        
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Remove supplier_data from the main form data
+        $this->supplierData = $data['supplier_data'] ?? [];
+        unset($data['supplier_data']);
+        
+        return $data;
+    }
+
     protected function afterSave(): void
     {
         $product = $this->record;
+        $supplierId = $this->data['single_supplier_id'] ?? null;
         
-        // Handle suppliers relationship
-        if (isset($this->data['suppliers']) && is_array($this->data['suppliers'])) {
-            $suppliersToSync = [];
-            
-            foreach ($this->data['suppliers'] as $data) {
-                if (!empty($data['supplier_id'])) {
-                    // Ensure the supplier_id exists in the suppliers table
-                    $supplier = \App\Models\Supplier::find($data['supplier_id']);
-                    
-                    if ($supplier) {
-                        $suppliersToSync[$data['supplier_id']] = [
-                            'cost_price' => $data['cost_price'] ?? null,
-                            'supplier_sku' => $data['supplier_sku'] ?? null,
-                            'is_preferred' => $data['is_preferred'] ?? false,
-                        ];
-                    }
-                }
-            }
-            
-            if (!empty($suppliersToSync)) {
-                $product->suppliers()->sync($suppliersToSync);
+        // First detach all suppliers (since we're only allowing one)
+        $product->suppliers()->detach();
+        
+        if ($supplierId) {
+            try {
+                // Attach the new supplier with explicit values for all fields
+                $product->suppliers()->attach($supplierId, [
+                    'cost_price' => $this->data['supplier_price'] ?? 0,
+                    'supplier_sku' => $this->data['supplier_sku'] ?? '',
+                    'is_preferred' => true,
+                    'sort' => 0,
+                ]);
+                
+                // Update supplier unit information on the product
+                $product->update([
+                    'supplier_unit_type' => $this->data['supplier_unit_type'] ?? 'single',
+                    'supplier_unit_quantity' => $this->data['supplier_unit_quantity'] ?? 1,
+                ]);
+                
+                \Log::info('Supplier updated successfully', [
+                    'product_id' => $product->id,
+                    'supplier_id' => $supplierId
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to update supplier: ' . $e->getMessage(), [
+                    'product_id' => $product->id,
+                    'supplier_id' => $supplierId,
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                Notification::make()
+                    ->title('Supplier Not Updated')
+                    ->body('There was a problem updating the supplier information: ' . $e->getMessage())
+                    ->warning()
+                    ->send();
             }
         }
     }

@@ -340,34 +340,46 @@ class ProductResource extends Resource
                             
                         Forms\Components\Tabs\Tab::make('Supplier Information')
                             ->schema([
-                                Forms\Components\Repeater::make('suppliers')
-                                    ->relationship('suppliers')
+                                Forms\Components\Section::make('Supplier Management')
                                     ->schema([
-                                        Forms\Components\Select::make('supplier_id')
+                                        Forms\Components\Select::make('single_supplier_id')
                                             ->label('Supplier')
-                                            ->options(function () {
-                                                return Supplier::where('status', 'active')
-                                                    ->pluck('name', 'id');
-                                            })
+                                            ->options(fn () => \App\Models\Supplier::where('status', 'active')->pluck('name', 'id'))
                                             ->searchable()
-                                            ->required()
-                                            ->reactive(),
+                                            ->preload()
+                                            ->required(),
                                             
-                                        Forms\Components\TextInput::make('cost_price')
-                                            ->label('Cost Price')
+                                        Forms\Components\TextInput::make('supplier_price')
+                                            ->label('Supplier Price')
                                             ->numeric()
                                             ->prefix('$'),
                                             
                                         Forms\Components\TextInput::make('supplier_sku')
-                                            ->label('Supplier SKU'),
+                                            ->label('Supplier Stock Number')
+                                            ->helperText('The stock number or code used by the supplier'),
                                             
-                                        Forms\Components\Toggle::make('is_preferred')
-                                            ->label('Preferred Supplier'),
+                                        Forms\Components\Select::make('supplier_unit_type')
+                                            ->label('Purchase Unit')
+                                            ->options([
+                                                'single' => 'Single Unit',
+                                                'case_6' => 'Case of 6',
+                                                'case_12' => 'Case of 12',
+                                                'case_24' => 'Case of 24',
+                                                'case_48' => 'Case of 48',
+                                                'box_100' => 'Box of 100',
+                                                'pallet' => 'Pallet',
+                                                'custom' => 'Custom Quantity'
+                                            ]),
+                                            
+                                        Forms\Components\TextInput::make('supplier_unit_quantity')
+                                            ->label('Units per Purchase')
+                                            ->helperText('How many individual units are in each purchase unit')
+                                            ->numeric()
+                                            ->default(1)
+                                            ->visible(fn (Get $get): bool => $get('supplier_unit_type') === 'custom'),
                                     ])
-                                    ->columns(3)
-                                    ->itemLabel(fn (array $state): ?string => 
-                                        $state['supplier_id'] ? Supplier::find($state['supplier_id'])?->name : null),
-                            ]),
+                                    ->columns(2)
+                            ])
                     ])
                     // Make the tabs component full width
                     ->columnSpanFull()
@@ -455,6 +467,20 @@ class ProductResource extends Resource
                 Tables\Filters\Filter::make('out_of_stock')
                     ->label('Out of Stock')
                     ->query(fn (Builder $query): Builder => $query->where('stock_quantity', '<=', 0)),
+
+                Tables\Filters\SelectFilter::make('supplier')
+                    ->label('Supplier')
+                    ->options(fn () => \App\Models\Supplier::pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!empty($data['value'])) {
+                            return $query->whereHas('suppliers', function (Builder $query) use ($data) {
+                                $query->where('suppliers.id', $data['value']);
+                            });
+                        }
+                        return $query;
+                    })
+                    ->searchable()
+                    ->preload(),
             ])
             ->filtersFormColumns(3)
             ->actions([
@@ -609,5 +635,18 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    // Add/modify this method in your ProductResource class
+    public static function getEloquentQuery(): Builder
+    {
+        // Log all SQL queries for products for debugging
+        \DB::listen(function ($query) {
+            if (str_contains($query->sql, 'product_supplier')) {
+                \Log::debug('SQL Query: ' . $query->sql, ['bindings' => $query->bindings]);
+            }
+        });
+        
+        return parent::getEloquentQuery()->with(['suppliers', 'category']);
     }
 }

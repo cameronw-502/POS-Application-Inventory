@@ -34,6 +34,13 @@ class Supplier extends Model
     {
         parent::boot();
         
+        // Ensure a name is always provided
+        static::creating(function($supplier) {
+            if (empty($supplier->name)) {
+                throw new \Exception('Supplier name is required.');
+            }
+        });
+        
         static::deleting(function($supplier) {
             // Prevent deletion if the supplier has associated products
             if ($supplier->products()->count() > 0) {
@@ -49,6 +56,8 @@ class Supplier extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'product_supplier');
+        return $this->belongsToMany(Product::class)
+            ->withPivot(['cost_price', 'supplier_sku', 'is_preferred', 'sort'])
+            ->withTimestamps();
     }
 }
