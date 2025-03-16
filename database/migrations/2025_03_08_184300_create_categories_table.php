@@ -8,24 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Create departments table first if it doesn't exist
-        if (!Schema::hasTable('departments')) {
-            Schema::create('departments', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug')->unique();
-                $table->text('description')->nullable();
-                $table->timestamps();
-            });
-        }
-
-        // Now create the categories table
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->foreignId('department_id')->constrained()->onDelete('cascade');
+            $table->foreignId('parent_id')->nullable()->references('id')->on('categories')->nullOnDelete();
+            $table->string('color')->nullable()->default('#3490dc');
+            $table->integer('display_order')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
@@ -33,6 +24,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('categories');
-        // Don't drop departments here as it might be referenced by other tables
     }
 };

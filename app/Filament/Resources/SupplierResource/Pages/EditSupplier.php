@@ -13,7 +13,21 @@ class EditSupplier extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            // Remove the Delete action entirely
+            // Instead, replace with a deactivate action if needed
+            Actions\Action::make('deactivate')
+                ->label('Deactivate')
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->action(function () {
+                    $record = $this->record;
+                    $record->status = 'inactive';
+                    $record->save();
+                    
+                    return redirect()->route('filament.admin.resources.suppliers.index');
+                })
+                ->visible(fn () => $this->record->status === 'active'),
         ];
     }
 }

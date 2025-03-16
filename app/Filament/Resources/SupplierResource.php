@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Illuminate\Support\Collection;
 
 class SupplierResource extends Resource
 {
@@ -154,12 +155,42 @@ class SupplierResource extends Resource
                     ]),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('deactivate')
+                    ->label('Deactivate')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function (Supplier $record) {
+                        $record->status = 'inactive';
+                        $record->save();
+                    })
+                    ->visible(fn (Supplier $record) => $record->status === 'active'),
+                Tables\Actions\Action::make('activate')
+                    ->label('Activate')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Supplier $record) {
+                        $record->status = 'active';
+                        $record->save();
+                    })
+                    ->visible(fn (Supplier $record) => $record->status === 'inactive'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('deactivate')
+                        ->label('Deactivate Selected')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records) {
+                            $records->each(function (Supplier $record) {
+                                $record->status = 'inactive';
+                                $record->save();
+                            });
+                        }),
                 ]),
             ]);
     }

@@ -30,6 +30,16 @@ class Product extends Model implements HasMedia
         'sku',
         'status',
         'category_id',
+        // Add new fields
+        'weight',
+        'width',
+        'height',
+        'length',
+        'color_id',
+        'size_id',
+        'upc',
+        'has_variations',
+        // Keep existing fields
         'traits',
         'cost_price',
         'stock',
@@ -49,10 +59,20 @@ class Product extends Model implements HasMedia
      * @var array
      */
     protected $casts = [
+        // Existing casts
         'id' => 'integer',
         'price' => 'decimal:2',
         'stock_quantity' => 'integer',
         'category_id' => 'integer',
+        // New casts
+        'weight' => 'decimal:2',
+        'width' => 'decimal:2',
+        'height' => 'decimal:2',
+        'length' => 'decimal:2',
+        'color_id' => 'integer',
+        'size_id' => 'integer',
+        'has_variations' => 'boolean',
+        // Existing casts
         'cost_price' => 'decimal:2',
         'stock' => 'integer',
         'featured' => 'boolean',
@@ -191,5 +211,52 @@ class Product extends Model implements HasMedia
     public function primarySupplier()
     {
         return $this->suppliers()->first();
+    }
+
+    // Add relationship methods for color and size
+    public function color()
+    {
+        return $this->belongsTo(Color::class);
+    }
+
+    public function size()
+    {
+        return $this->belongsTo(Size::class);
+    }
+
+    // Add relationship for variations
+    public function variations()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    // Override the setAttribute method to prevent changing SKU
+    public function setAttribute($key, $value)
+    {
+        if ($key === 'sku' && $this->exists && $this->sku) {
+            // Don't allow SKU changes on existing products
+            return $this;
+        }
+        
+        return parent::setAttribute($key, $value);
+    }
+
+    // Auto-generate SKU when needed
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($product) {
+            if (empty($product->sku)) {
+                // Generate SKU based on a prefix and the next product ID
+                $nextId = (self::max('id') ?? 0) + 1;
+                $product->sku = 'P' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+            }
+            
+            // Set default UPC to SKU if not provided
+            if (empty($product->upc)) {
+                $product->upc = $product->sku;
+            }
+        });
     }
 }

@@ -30,6 +30,18 @@ class Supplier extends Model
         'default_shipping_method',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::deleting(function($supplier) {
+            // Prevent deletion if the supplier has associated products
+            if ($supplier->products()->count() > 0) {
+                throw new \Exception('Cannot delete supplier with associated products.');
+            }
+        });
+    }
+
     public function purchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class);

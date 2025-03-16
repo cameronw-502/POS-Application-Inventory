@@ -4,9 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
-use App\Models\Department;
 use App\Models\Category;
 use App\Models\Supplier;
+use App\Models\Color; // Add this import
+use App\Models\Size;  // Add this import
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -22,6 +23,7 @@ use App\Exports\ProductsExport;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProductResource extends Resource
 {
@@ -33,131 +35,335 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255)
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => 
-                        $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(255)
-                    ->unique(ignoreRecord: true),
-
-                Forms\Components\TextInput::make('sku')
-                    ->required()
-                    ->maxLength(255)
-                    ->unique(ignoreRecord: true),
-                    
-                Forms\Components\Select::make('department_id')
-                    ->label('Department')
-                    ->options(Department::all()->pluck('name', 'id'))
-                    ->required()
-                    ->live()
-                    ->afterStateUpdated(function (Set $set) {
-                        $set('category_id', null);
-                    }),
-
-                Forms\Components\Select::make('category_id')
-                    ->label('Category')
-                    ->options(function (Get $get) {
-                        $departmentId = $get('department_id');
-                        
-                        if (!$departmentId) {
-                            return Category::all()->pluck('name', 'id');
-                        }
-                        
-                        return Category::where('department_id', $departmentId)
-                            ->pluck('name', 'id');
-                    })
-                    ->required()
-                    ->live()
-                    ->disabled(fn (Get $get): bool => !$get('department_id')),
-
-                Forms\Components\TextInput::make('price')
-                    ->required()
-                    ->numeric(),
-
-                Forms\Components\TextInput::make('stock_quantity')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-
-                Forms\Components\Select::make('status')
-                    ->required()
-                    ->options([
-                        'draft' => 'Draft',
-                        'published' => 'Published',
-                        'archived' => 'Archived',
-                    ])
-                    ->default('draft'),
-
-                Forms\Components\Textarea::make('description')
-                    ->maxLength(65535)
-                    ->columnSpanFull(),
-
-                SpatieMediaLibraryFileUpload::make('images')
-                    ->collection('product-images')
-                    ->multiple()
-                    ->maxFiles(5)
-                    ->columnSpanFull(),
-
-                Forms\Components\Section::make('Supplier Information')
-                    ->schema([
-                        Forms\Components\Repeater::make('suppliers')
+                Forms\Components\Tabs::make('Product')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('Basic Information')
                             ->schema([
-                                Forms\Components\Select::make('supplier_id')
-                                    ->label('Supplier')
-                                    ->options(function () {
-                                        return Supplier::where('status', 'active')
-                                            ->pluck('name', 'id');
-                                    })
-                                    ->searchable()
+                                Forms\Components\TextInput::make('name')
                                     ->required()
-                                    ->reactive()
+                                    ->maxLength(255)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => 
+                                        $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+
+                                Forms\Components\TextInput::make('slug')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->unique(ignoreRecord: true),
+
+                                Forms\Components\TextInput::make('sku')
+                                    ->disabled(fn (string $operation): bool => $operation === 'edit')
+                                    ->helperText('SKU will be auto-generated and locked after creation')
+                                    ->placeholder('Auto-generated'),
+
+                                Forms\Components\TextInput::make('upc')
+                                    ->helperText('Leave blank to use SKU as UPC')
+                                    ->maxLength(255),
+                                    
+                                Forms\Components\Select::make('category_id')
+                                    ->label('Category')
+                                    ->relationship('category', 'name')
+                                    ->getOptionLabelFromRecordUsing(fn (Category $record) => $record->path)
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
                                     ->createOptionForm([
+                                        Forms\Components\Select::make('parent_id')
+                                            ->label('Parent Category')
+                                            ->options(function () {
+                                                return Category::all()->pluck('name', 'id');
+                                            })
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('No parent (top-level category)'),
+                                            
                                         Forms\Components\TextInput::make('name')
                                             ->required()
-                                            ->maxLength(255),
-                                        Forms\Components\TextInput::make('email')
-                                            ->email()
-                                            ->maxLength(255),
-                                        Forms\Components\TextInput::make('phone')
-                                            ->tel()
-                                            ->maxLength(255),
-                                        Forms\Components\Select::make('status')
-                                            ->options([
-                                                'active' => 'Active',
-                                                'inactive' => 'Inactive',
-                                            ])
-                                            ->default('active')
-                                            ->required(),
+                                            ->maxLength(255)
+                                            ->unique(Category::class, 'name'),
+                                            
+                                        Forms\Components\ColorPicker::make('color')
+                                            ->default('#3490dc'),
+                                            
+                                        Forms\Components\Textarea::make('description')
+                                            ->maxLength(500),
                                     ])
-                                    ->createOptionAction(function (Forms\Components\Actions\Action $action) {
-                                        return $action
-                                            ->modalHeading('Create new supplier')
-                                            ->modalSubmitActionLabel('Create supplier');
+                                    ->createOptionUsing(function (array $data): int {
+                                        return Category::create([
+                                            'name' => $data['name'],
+                                            'slug' => Str::slug($data['name']),
+                                            'description' => $data['description'] ?? null,
+                                            'parent_id' => $data['parent_id'] ?? null,
+                                            'color' => $data['color'] ?? '#3490dc',
+                                            'is_active' => true,
+                                            'display_order' => 0,
+                                        ])->id;
                                     }),
-                                    
-                                Forms\Components\TextInput::make('cost_price')
-                                    ->label('Cost Price')
+
+                                Forms\Components\TextInput::make('price')
+                                    ->required()
                                     ->numeric()
                                     ->prefix('$'),
+
+                                Forms\Components\TextInput::make('stock_quantity')
+                                    ->required()
+                                    ->numeric()
+                                    ->default(0),
+
+                                Forms\Components\Select::make('status')
+                                    ->required()
+                                    ->options([
+                                        'draft' => 'Draft',
+                                        'published' => 'Published',
+                                        'archived' => 'Archived',
+                                    ])
+                                    ->default('draft'),
+
+                                Forms\Components\Textarea::make('description')
+                                    ->maxLength(65535)
+                                    ->columnSpanFull(),
+                            ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Physical Attributes')
+                            ->schema([
+                                Forms\Components\Grid::make()
+                                    ->schema([
+                                        Forms\Components\TextInput::make('weight')
+                                            ->label('Weight (in lbs)')
+                                            ->numeric()
+                                            ->step(0.01),
+                                            
+                                        Forms\Components\TextInput::make('width')
+                                            ->label('Width (in inches)')
+                                            ->numeric()
+                                            ->step(0.01),
+                                            
+                                        Forms\Components\TextInput::make('height')
+                                            ->label('Height (in inches)')
+                                            ->numeric()
+                                            ->step(0.01),
+                                            
+                                        Forms\Components\TextInput::make('length')
+                                            ->label('Length (in inches)')
+                                            ->numeric()
+                                            ->step(0.01),
+                                    ])
+                                    ->columns(2),
+                                
+                                Forms\Components\Grid::make()
+                                    ->schema([
+                                        Forms\Components\Select::make('color_id')
+                                            ->label('Color')
+                                            ->options(Color::pluck('name', 'id'))
+                                            ->searchable()
+                                            ->createOptionForm([
+                                                Forms\Components\TextInput::make('name')
+                                                    ->required()
+                                                    ->maxLength(255)
+                                                    ->unique(Color::class, 'name'),
+                                                Forms\Components\ColorPicker::make('hex_code')
+                                                    ->required(),
+                                            ])
+                                            ->createOptionUsing(function (array $data): int {
+                                                return Color::create([
+                                                    'name' => $data['name'],
+                                                    'hex_code' => $data['hex_code'],
+                                                ])->id;
+                                            })
+                                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                                return $action
+                                                    ->modalHeading('Create new color')
+                                                    ->modalButton('Create new color')
+                                                    ->modalWidth('md');
+                                            }),
                                     
-                                Forms\Components\TextInput::make('supplier_sku')
-                                    ->label('Supplier SKU'),
+                                        Forms\Components\Select::make('size_id')
+                                            ->label('Size')
+                                            ->options(Size::orderBy('display_order')->pluck('name', 'id'))
+                                            ->searchable()
+                                            ->createOptionForm([
+                                                Forms\Components\TextInput::make('name')
+                                                    ->required()
+                                                    ->maxLength(255)
+                                                    ->unique(Size::class, 'name'),
+                                                Forms\Components\TextInput::make('display_order')
+                                                    ->numeric()
+                                                    ->default(0)
+                                                    ->helperText('Lower numbers appear first'),
+                                            ])
+                                            ->createOptionUsing(function (array $data): int {
+                                                return Size::create([
+                                                    'name' => $data['name'],
+                                                    'display_order' => $data['display_order'],
+                                                ])->id;
+                                            })
+                                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                                return $action
+                                                    ->modalHeading('Create new size')
+                                                    ->modalButton('Create new size')
+                                                    ->modalWidth('md');
+                                            }),
+                                    ])
+                                    ->columns(2),
+                            ]),
+                        
+                        Forms\Components\Tabs\Tab::make('Variations')
+                            ->schema([
+                                Forms\Components\Toggle::make('has_variations')
+                                    ->label('This product has multiple variations')
+                                    ->helperText('Enable to create variations like different sizes, colors, etc.')
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                        if (!$state) {
+                                            $set('variations', []);
+                                        }
+                                    }),
                                     
-                                Forms\Components\Toggle::make('is_preferred')
-                                    ->label('Preferred Supplier'),
-                            ])
-                            ->columns(4)
-                            ->defaultItems(0)
-                            ->itemLabel(fn (array $state): ?string => 
-                                $state['supplier_id'] ? 
-                                Supplier::find($state['supplier_id'])?->name : 
-                                null
-                            ),
+                                Forms\Components\Section::make('Product Variations')
+                                    ->schema([
+                                        Forms\Components\Repeater::make('variations')
+                                            ->relationship()
+                                            ->schema([
+                                                Forms\Components\TextInput::make('name')
+                                                    ->required()
+                                                    ->maxLength(255)
+                                                    ->helperText('e.g. "Blue, Large" or "XL"'),
+                                                    
+                                                Forms\Components\TextInput::make('sku')
+                                                    ->disabled()
+                                                    ->placeholder('Auto-generated')
+                                                    ->helperText('SKU will be auto-generated'),
+                                                    
+                                                Forms\Components\TextInput::make('upc')
+                                                    ->maxLength(255)
+                                                    ->helperText('Leave blank to use SKU as UPC'),
+                                                    
+                                                Forms\Components\TextInput::make('price')
+                                                    ->numeric()
+                                                    ->prefix('$')
+                                                    ->helperText('Leave blank to use parent product price'),
+                                                    
+                                                Forms\Components\TextInput::make('stock_quantity')
+                                                    ->numeric()
+                                                    ->default(0),
+                                                    
+                                                Forms\Components\Grid::make()
+                                                    ->schema([
+                                                        Forms\Components\Select::make('color_id')
+                                                            ->label('Color')
+                                                            ->options(Color::pluck('name', 'id'))
+                                                            ->searchable()
+                                                            ->createOptionForm([
+                                                                Forms\Components\TextInput::make('name')
+                                                                    ->required()
+                                                                    ->maxLength(255)
+                                                                    ->unique(Color::class, 'name'),
+                                                                Forms\Components\ColorPicker::make('hex_code')
+                                                                    ->required(),
+                                                            ])
+                                                            ->createOptionUsing(function (array $data): int {
+                                                                return Color::create([
+                                                                    'name' => $data['name'],
+                                                                    'hex_code' => $data['hex_code'],
+                                                                ])->id;
+                                                            }),
+                                                        
+                                                        Forms\Components\Select::make('size_id')
+                                                            ->label('Size')
+                                                            ->options(Size::orderBy('display_order')->pluck('name', 'id'))
+                                                            ->searchable()
+                                                            ->createOptionForm([
+                                                                Forms\Components\TextInput::make('name')
+                                                                    ->required()
+                                                                    ->maxLength(255)
+                                                                    ->unique(Size::class, 'name'),
+                                                                Forms\Components\TextInput::make('display_order')
+                                                                    ->numeric()
+                                                                    ->default(0),
+                                                            ])
+                                                            ->createOptionUsing(function (array $data): int {
+                                                                return Size::create([
+                                                                    'name' => $data['name'],
+                                                                    'display_order' => $data['display_order'],
+                                                                ])->id;
+                                                            }),
+                                                    ])
+                                                    ->columns(2),
+                                                    
+                                                Forms\Components\Grid::make()
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('weight')
+                                                            ->label('Weight (lbs)')
+                                                            ->numeric()
+                                                            ->step(0.01)
+                                                            ->placeholder('Use parent value'),
+                                                            
+                                                        Forms\Components\TextInput::make('width')
+                                                            ->label('Width (in)')
+                                                            ->numeric()
+                                                            ->step(0.01)
+                                                            ->placeholder('Use parent value'),
+                                                            
+                                                        Forms\Components\TextInput::make('height')
+                                                            ->label('Height (in)')
+                                                            ->numeric()
+                                                            ->step(0.01)
+                                                            ->placeholder('Use parent value'),
+                                                            
+                                                        Forms\Components\TextInput::make('length')
+                                                            ->label('Length (in)')
+                                                            ->numeric()
+                                                            ->step(0.01)
+                                                            ->placeholder('Use parent value'),
+                                                    ])
+                                                    ->columns(2),
+                                            ])
+                                            ->defaultItems(0)
+                                            ->columns(1)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->visible(fn (Get $get) => $get('has_variations')),
+                            ]),
+                            
+                        Forms\Components\Tabs\Tab::make('Images')
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('images')
+                                    ->collection('product-images')
+                                    ->multiple()
+                                    ->maxFiles(5)
+                                    ->columnSpanFull(),
+                            ]),
+                            
+                        Forms\Components\Tabs\Tab::make('Supplier Information')
+                            ->schema([
+                                Forms\Components\Repeater::make('suppliers')
+                                    ->relationship('suppliers')
+                                    ->schema([
+                                        Forms\Components\Select::make('supplier_id')
+                                            ->label('Supplier')
+                                            ->options(function () {
+                                                return Supplier::where('status', 'active')
+                                                    ->pluck('name', 'id');
+                                            })
+                                            ->searchable()
+                                            ->required()
+                                            ->reactive(),
+                                            
+                                        Forms\Components\TextInput::make('cost_price')
+                                            ->label('Cost Price')
+                                            ->numeric()
+                                            ->prefix('$'),
+                                            
+                                        Forms\Components\TextInput::make('supplier_sku')
+                                            ->label('Supplier SKU'),
+                                            
+                                        Forms\Components\Toggle::make('is_preferred')
+                                            ->label('Preferred Supplier'),
+                                    ])
+                                    ->columns(3)
+                                    ->itemLabel(fn (array $state): ?string => 
+                                        $state['supplier_id'] ? Supplier::find($state['supplier_id'])?->name : null),
+                            ]),
                     ]),
             ]);
     }
@@ -166,19 +372,30 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                SpatieMediaLibraryImageColumn::make('product-image')
+                Tables\Columns\SpatieMediaLibraryImageColumn::make('image')
                     ->collection('product-images'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('sku')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('upc')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('category.name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money()
+                    ->money('USD')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('stock_quantity')
                     ->sortable(),
+                Tables\Columns\IconColumn::make('has_variations')
+                    ->boolean()
+                    ->label('Variations')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('color.name')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('size.name')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -188,12 +405,25 @@ class ProductResource extends Resource
                     }),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('department')
-                    ->relationship('category.department', 'name')
-                    ->label('Department'),
+                Tables\Filters\SelectFilter::make('top_level_category')
+                    ->label('Department')
+                    ->options(function() {
+                        return Category::whereNull('parent_id')->pluck('name', 'id');
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!empty($data['value'])) {
+                            return $query->whereHas('category', function (Builder $query) use ($data) {
+                                $query->where('parent_id', $data['value'])
+                                    ->orWhere('id', $data['value']);
+                            });
+                        }
+                        return $query;
+                    }),
                     
                 Tables\Filters\SelectFilter::make('category')
-                    ->relationship('category', 'name'),
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload(),
                     
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
@@ -265,8 +495,77 @@ class ProductResource extends Resource
     {
         return $infolist
             ->schema([
-                // Your existing sections...
-                
+                Infolists\Components\Section::make('Product Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('name'),
+                        Infolists\Components\TextEntry::make('sku'),
+                        Infolists\Components\TextEntry::make('upc'),
+                        Infolists\Components\TextEntry::make('category.name')
+                            ->label('Category'),
+                        Infolists\Components\TextEntry::make('price')
+                            ->money('USD'),
+                        Infolists\Components\TextEntry::make('stock_quantity')
+                            ->label('In Stock'),
+                        Infolists\Components\TextEntry::make('status')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'published' => 'success',
+                                'draft' => 'warning',
+                                'archived' => 'danger',
+                            }),
+                    ])
+                    ->columns(2),
+
+                Infolists\Components\Section::make('Physical Attributes')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('weight')
+                            ->label('Weight (lbs)'),
+                        Infolists\Components\TextEntry::make('width')
+                            ->label('Width (in)'),
+                        Infolists\Components\TextEntry::make('height')
+                            ->label('Height (in)'),
+                        Infolists\Components\TextEntry::make('length')
+                            ->label('Length (in)'),
+                        Infolists\Components\TextEntry::make('color.name')
+                            ->label('Color'),
+                        Infolists\Components\TextEntry::make('size.name')
+                            ->label('Size'),
+                    ])
+                    ->columns(3),
+                    
+                Infolists\Components\Section::make('Description')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('description')
+                            ->markdown()
+                            ->columnSpanFull(),
+                    ]),
+                    
+                Infolists\Components\Section::make('Images')
+                    ->schema([
+                        Infolists\Components\SpatieMediaLibraryImageEntry::make('images')
+                            ->collection('product-images')
+                            ->columnSpanFull(),
+                    ]),
+                    
+                Infolists\Components\Section::make('Variations')
+                    ->schema([
+                        Infolists\Components\RepeatableEntry::make('variations')
+                            ->schema([
+                                Infolists\Components\TextEntry::make('name'),
+                                Infolists\Components\TextEntry::make('sku'),
+                                Infolists\Components\TextEntry::make('price')
+                                    ->money('USD'),
+                                Infolists\Components\TextEntry::make('stock_quantity')
+                                    ->label('In Stock'),
+                                Infolists\Components\TextEntry::make('color.name')
+                                    ->label('Color'),
+                                Infolists\Components\TextEntry::make('size.name')
+                                    ->label('Size'),
+                            ])
+                            ->columns(3),
+                    ])
+                    ->visible(fn (\App\Models\Product $record) => $record->has_variations),
+                    
                 Infolists\Components\Section::make('Suppliers')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('suppliers')

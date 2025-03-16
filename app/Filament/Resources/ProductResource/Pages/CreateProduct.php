@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 class CreateProduct extends CreateRecord
 {
     protected static string $resource = ProductResource::class;
+    protected ?string $maxWidth = 'full';
+    protected ?string $contentWidth = 'full';
+    protected ?string $maxContentWidth = 'full';
+    
+    // Add this property at the top of the class
+    protected int|string|array $columnSpan = 'full';
     
     // Before the record is created, validate supplier data
     protected function mutateFormDataBeforeCreate(array $data): array
@@ -56,28 +62,43 @@ class CreateProduct extends CreateRecord
         }
     }
     
-    // After the record is created, handle the supplier relationships
+    // Replace the existing method with this improved version
+    protected function handleSupplierRelationship($product, $supplierData)
+    {
+        $suppliersToSync = [];
+        
+        foreach ($supplierData as $data) {
+            if (!empty($data['supplier_id'])) {
+                $suppliersToSync[$data['supplier_id']] = [
+                    'cost_price' => $data['cost_price'] ?? null,
+                    'supplier_sku' => $data['supplier_sku'] ?? null,
+                    'is_preferred' => $data['is_preferred'] ?? false,
+                ];
+            }
+        }
+        
+        // Get current suppliers
+        $currentSupplierIds = $product->suppliers()->pluck('supplier_id')->toArray();
+        
+        // Only sync the new suppliers, don't remove existing ones that might have been 
+        // temporarily removed from the form
+        foreach ($suppliersToSync as $supplierId => $pivotData) {
+            if (!in_array($supplierId, $currentSupplierIds)) {
+                $product->suppliers()->attach($supplierId, $pivotData);
+            } else {
+                $product->suppliers()->updateExistingPivot($supplierId, $pivotData);
+            }
+        }
+    }
+
+    // Then update your afterCreate and afterSave methods:
     protected function afterCreate(): void
     {
         $product = $this->record;
         
-        // If suppliers were provided, ensure they're correctly attached
+        // Handle suppliers relationship
         if (isset($this->data['suppliers']) && is_array($this->data['suppliers'])) {
-            foreach ($this->data['suppliers'] as $supplierData) {
-                // Only process items with a supplier_id
-                if (!empty($supplierData['supplier_id'])) {
-                    // Direct DB approach to avoid model issues
-                    \DB::table('product_supplier')->insert([
-                        'product_id' => $product->id,
-                        'supplier_id' => $supplierData['supplier_id'],
-                        'cost_price' => $supplierData['cost_price'] ?? null,
-                        'supplier_sku' => $supplierData['supplier_sku'] ?? null,
-                        'is_preferred' => $supplierData['is_preferred'] ?? false,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-            }
+            $this->handleSupplierRelationship($product, $this->data['suppliers']);
         }
     }
 }
