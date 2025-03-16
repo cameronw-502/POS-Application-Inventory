@@ -12,7 +12,10 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Placeholder;
+// Make sure to use the fully qualified namespace for Placeholder
+use Filament\Forms\Components\Placeholder as FilamentPlaceholder;
+// or simply replace the original import with:
+// use Filament\Forms\Components\Placeholder;
 
 class CreateReceivingReport extends CreateRecord
 {
@@ -71,7 +74,10 @@ class CreateReceivingReport extends CreateRecord
                     $items[] = [
                         'purchase_order_item_id' => $poItem->id,
                         'product_id' => $poItem->product_id,
+                        'quantity_ordered' => $poItem->quantity,
                         'quantity_received' => $poItem->quantity - $poItem->quantity_received,
+                        'quantity_damaged' => 0,
+                        'quantity_missing' => 0,
                         'notes' => '',
                     ];
                 }
@@ -104,6 +110,17 @@ class CreateReceivingReport extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        // Process the items to combine received and damaged quantities
+        if (isset($data['items']) && is_array($data['items'])) {
+            foreach ($data['items'] as $key => $item) {
+                $goodQty = (int)($item['quantity_received'] ?? 0);
+                $damagedQty = (int)($item['quantity_damaged'] ?? 0);
+                
+                // Update the total received quantity to include both good and damaged
+                $data['items'][$key]['quantity_received'] = $goodQty + $damagedQty;
+            }
+        }
+
         // Generate a unique receiving number
         $data['receiving_number'] = 'RR-' . date('Ymd') . '-' . Str::upper(Str::random(5));
         $data['received_by'] = auth()->id();
@@ -123,57 +140,92 @@ class CreateReceivingReport extends CreateRecord
         
         DB::beginTransaction();
         try {
-            $totalReceived = 0;
             $allItemsReceived = true;
             
             foreach ($this->data['items'] as $itemData) {
-                // Skip items with zero quantity received
-                if ($itemData['quantity_received'] <= 0) {
+                // Skip items with zero total received
+                $quantityGood = (int)($itemData['quantity_received'] ?? 0);
+                $quantityDamaged = (int)($itemData['quantity_damaged'] ?? 0);
+                $totalReceived = $quantityGood + $quantityDamaged;
+                $quantityMissing = (int)($itemData['quantity_missing'] ?? 0);
+                
+                if ($totalReceived <= 0) {
                     continue;
                 }
                 
-                // Create receiving report item
-                $receivingReport->items()->create([
+                // Get the purchase order item for reference
+                $poItem = PurchaseOrderItem::findOrFail($itemData['purchase_order_item_id']);
+                $orderedQty = $poItem->quantity;
+                
+                // Double-check missing qty calculation
+                $quantityMissing = max(0, $orderedQty - $quantityGood - $quantityDamaged);
+                
+                // Create receiving report item with corrected values
+                $item = $receivingReport->items()->create([
                     'purchase_order_item_id' => $itemData['purchase_order_item_id'],
                     'product_id' => $itemData['product_id'],
-                    'quantity_received' => $itemData['quantity_received'],
+                    'quantity_received' => $totalReceived,
+                    'quantity_good' => $quantityGood,
+                    'quantity_damaged' => $quantityDamaged,
+                    'quantity_missing' => $quantityMissing,
                     'notes' => $itemData['notes'] ?? null,
                 ]);
                 
                 // Update purchase order item's received quantity
-                $poItem = PurchaseOrderItem::findOrFail($itemData['purchase_order_item_id']);
-                $poItem->increment('quantity_received', $itemData['quantity_received']);
-                $totalReceived += $itemData['quantity_received'];
+                $poItem->increment('quantity_received', $totalReceived);
                 
                 // Check if the PO item is fully received
                 if ($poItem->quantity_received < $poItem->quantity) {
                     $allItemsReceived = false;
                 }
                 
-                // Update product stock
+                // Update product stock - only add good condition items
                 $product = Product::findOrFail($itemData['product_id']);
-                $product->stock_quantity += $itemData['quantity_received'];
+                $product->stock_quantity += $quantityGood;
                 $product->stock = $product->stock_quantity; // Keep both fields in sync
                 $product->save();
                 
-                // Log this inventory update
-                \Log::info('Updated product stock from receiving', [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'quantity_received' => $itemData['quantity_received'],
-                    'new_stock' => $product->stock_quantity
-                ]);
+                // Log inventory transaction for good items
+                if ($quantityGood > 0) {
+                    InventoryTransaction::create([
+                        'product_id' => $itemData['product_id'],
+                        'quantity' => $quantityGood,
+                        'type' => 'purchase',
+                        'reference_type' => get_class($receivingReport),
+                        'reference_id' => $receivingReport->id,
+                        'notes' => "Received from PO #{$purchaseOrder->po_number} (Good condition)",
+                        'user_id' => auth()->id(),
+                    ]);
+                }
                 
-                // Log inventory transaction
-                InventoryTransaction::create([
-                    'product_id' => $itemData['product_id'],
-                    'quantity' => $itemData['quantity_received'],
-                    'type' => 'purchase',
-                    'reference_type' => get_class($receivingReport),
-                    'reference_id' => $receivingReport->id,
-                    'notes' => "Received from PO #{$purchaseOrder->po_number}",
-                    'user_id' => auth()->id(),
-                ]);
+                // Process damage images if any
+                if ($quantityDamaged > 0 && isset($itemData['damage_images']) && count($itemData['damage_images']) > 0) {
+                    foreach ($itemData['damage_images'] as $image) {
+                        $item->addMedia(storage_path('app/public/' . $image))
+                            ->toMediaCollection('damage_images');
+                    }
+                }
+            }
+            
+            // Handle damaged box images
+            if ($this->data['has_damaged_boxes'] && isset($this->data['damaged_box_images'])) {
+                foreach ($this->data['damaged_box_images'] as $image) {
+                    $this->record->addMedia(storage_path('app/public/' . $image))
+                        ->toMediaCollection('damaged_box_images');
+                }
+            }
+            
+            // Handle item damage images
+            foreach ($this->data['items'] as $index => $itemData) {
+                if (isset($itemData['is_damaged']) && $itemData['is_damaged'] && isset($itemData['damage_images'])) {
+                    $item = $this->record->items[$index] ?? null;
+                    if ($item) {
+                        foreach ($itemData['damage_images'] as $image) {
+                            $item->addMedia(storage_path('app/public/' . $image))
+                                ->toMediaCollection('damage_images');
+                        }
+                    }
+                }
             }
             
             // Update purchase order status based on receiving status

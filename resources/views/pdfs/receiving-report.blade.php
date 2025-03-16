@@ -83,8 +83,11 @@
             <tr>
                 <th>SKU</th>
                 <th>Product</th>
-                <th>Ordered Qty</th>
-                <th>Received Qty</th>
+                <th>Ordered</th>
+                <th>Already Received</th>
+                <th>Received Good</th>
+                <th>Damaged</th>
+                <th>Missing</th>
                 <th>Unit Price</th>
                 <th>Total</th>
             </tr>
@@ -95,7 +98,10 @@
                     <td>{{ $item->product->sku }}</td>
                     <td>{{ $item->product->name }}</td>
                     <td>{{ $item->purchaseOrderItem->quantity }}</td>
-                    <td>{{ $item->quantity_received }}</td>
+                    <td>{{ $item->purchaseOrderItem->quantity_received - $item->quantity_received }}</td>
+                    <td>{{ $item->quantity_good ?? $item->quantity_received }}</td>
+                    <td>{{ $item->quantity_damaged ?? 0 }}</td>
+                    <td>{{ $item->quantity_missing ?? 0 }}</td>
                     <td>${{ number_format($item->purchaseOrderItem->unit_price, 2) }}</td>
                     <td>${{ number_format($item->purchaseOrderItem->unit_price * $item->quantity_received, 2) }}</td>
                 </tr>
