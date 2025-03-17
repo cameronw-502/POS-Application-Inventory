@@ -25,25 +25,28 @@ class ProductSeeder extends Seeder
                 'name' => 'Laptop Computer',
                 'description' => 'High-performance laptop with 16GB RAM and 512GB SSD',
                 'price' => 999.99,
-                'stock_quantity' => 20,
-                'stock' => 20,
+                'stock_quantity' => 0, // Initialize with zero stock
                 'upc' => 'TECH-001',
+                'min_stock' => 5,
+                'status' => 'published', // Set status to published
             ],
             [
                 'name' => 'Smartphone',
                 'description' => 'Latest model with advanced camera system and fast processor',
                 'price' => 699.99,
-                'stock_quantity' => 50,
-                'stock' => 50,
+                'stock_quantity' => 0, // Initialize with zero stock
                 'upc' => 'TECH-002',
+                'min_stock' => 10,
+                'status' => 'published', // Set status to published
             ],
             [
                 'name' => 'Wireless Headphones',
                 'description' => 'Noise-cancelling headphones with 24-hour battery life',
                 'price' => 249.99,
-                'stock_quantity' => 30,
-                'stock' => 30,
+                'stock_quantity' => 0, // Initialize with zero stock
                 'upc' => 'AUDIO-001',
+                'min_stock' => 8,
+                'status' => 'published', // Set status to published
             ],
             // Add more products as needed
         ];
@@ -52,14 +55,35 @@ class ProductSeeder extends Seeder
             // Generate slug from name
             $productData['slug'] = Str::slug($productData['name']);
             
-            // Assign random category and supplier
+            // Assign random category
             $productData['category_id'] = $categories->random()->id;
-            $productData['supplier_id'] = $suppliers->random()->id;
             
-            // Note: We're not setting 'sku' field to let the app auto-generate it
+            // Get a random supplier
+            $supplier = $suppliers->random();
+            
+            // Assign the supplier_id field (for direct relationship)
+            $productData['supplier_id'] = $supplier->id;
+            
+            // Calculate a reasonable cost price (70-80% of selling price)
+            $costPercentage = rand(70, 80) / 100;
+            $costPrice = round($productData['price'] * $costPercentage, 2);
+            
+            // Ensure stock_quantity is always 0 for new products
+            $productData['stock_quantity'] = 0;
+            
+            // Make sure status is published
+            $productData['status'] = 'published';
             
             // Create the product
-            Product::create($productData);
+            $product = Product::create($productData);
+            
+            // Now attach the supplier with the cost price in the pivot table
+            $product->suppliers()->attach($supplier->id, [
+                'cost_price' => $costPrice,
+                'supplier_sku' => 'SUPP-' . strtoupper(Str::random(6)),
+                'is_preferred' => true,
+                'sort' => 1
+            ]);
         }
     }
 }

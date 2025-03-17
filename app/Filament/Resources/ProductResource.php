@@ -202,11 +202,6 @@ class ProductResource extends Resource
                                     ])
                                     ->columns(2),
 
-                                Forms\Components\TextInput::make('stock_quantity')
-                                    ->required()
-                                    ->numeric()
-                                    ->default(0),
-
                                 Forms\Components\Select::make('status')
                                     ->required()
                                     ->options([
@@ -351,6 +346,25 @@ class ProductResource extends Resource
                     // Make the tabs component full width
                     ->columnSpanFull()
                     ->persistTabInQueryString(),
+
+                Forms\Components\Section::make('Inventory Information')
+                    ->schema([
+                        // Make stock_quantity read-only but visible
+                        Forms\Components\TextInput::make('stock_quantity')
+                            ->label('Current Stock')
+                            ->numeric()
+                            ->disabled() // This makes it read-only
+                            ->dehydrated() // Still include the value when saving
+                            ->helperText('Stock quantity cannot be edited directly. Use inventory transactions to adjust stock.'),
+                            
+                        // Keep only min_stock, remove max_stock
+                        Forms\Components\TextInput::make('min_stock')
+                            ->label('Minimum Stock Level')
+                            ->numeric()
+                            ->integer()
+                            ->helperText('Products below this level will be flagged as low stock'),
+                    ])
+                    ->columns(1), // Make this section single-column for clarity
             ])
             // Add this to explicitly set form to maximum size
             ->columns([
