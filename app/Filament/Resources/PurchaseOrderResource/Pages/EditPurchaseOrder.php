@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\PurchaseOrderResource\Pages;
 
 use App\Filament\Resources\PurchaseOrderResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use App\Models\ProductHistoryEvent;
 
 class EditPurchaseOrder extends EditRecord
 {
@@ -17,9 +17,26 @@ class EditPurchaseOrder extends EditRecord
         ];
     }
 
-    // Add this method to ensure totals are calculated after editing
     protected function afterSave(): void
     {
+        $purchaseOrder = $this->record;
+
+        // Check if status changed to ordered or other relevant status
+        if ($purchaseOrder->wasChanged('status') && $purchaseOrder->status === 'ordered') {
+            // Record history for each product
+            foreach ($purchaseOrder->items as $item) {
+                if ($item->product) {
+                    $item->product->recordHistory(
+                        ProductHistoryEvent::TYPE_PURCHASE_ORDER,
+                        0, // No immediate quantity change
+                        $purchaseOrder,
+                        $purchaseOrder->po_number,
+                        "Purchase order {$purchaseOrder->po_number} status changed to ordered"
+                    );
+                }
+            }
+        }
+
         // Refresh the model to get all relationships
         $purchaseOrder = $this->record->fresh();
         

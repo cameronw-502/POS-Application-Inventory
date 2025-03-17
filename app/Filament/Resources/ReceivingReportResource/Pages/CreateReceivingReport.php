@@ -16,6 +16,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Placeholder as FilamentPlaceholder;
 // or simply replace the original import with:
 // use Filament\Forms\Components\Placeholder;
+use App\Models\ProductHistoryEvent;
 
 class CreateReceivingReport extends CreateRecord
 {
@@ -293,14 +294,38 @@ class CreateReceivingReport extends CreateRecord
             }
         });
         
-        // Update inventory quantities
+        // Update inventory quantities and record history
         foreach ($receivingReport->items as $item) {
             // Only add good items to inventory
             if ($item->quantity_good > 0) {
                 $product = $item->product;
                 if ($product) {
+                    $oldQuantity = $product->stock_quantity;
                     $product->stock_quantity += $item->quantity_good;
                     $product->save();
+                    
+                    // Record history event
+                    $product->recordHistory(
+                        ProductHistoryEvent::TYPE_RECEIVING,
+                        $item->quantity_good,
+                        $receivingReport,
+                        $receivingReport->receiving_number,
+                        "Received {$item->quantity_good} good units from PO {$receivingReport->purchaseOrder->po_number}"
+                    );
+                }
+            }
+            
+            // Record damaged items in history without adding to inventory
+            if ($item->quantity_damaged > 0) {
+                $product = $item->product;
+                if ($product) {
+                    $product->recordHistory(
+                        ProductHistoryEvent::TYPE_RECEIVING,
+                        0, // No quantity change for damaged items
+                        $receivingReport,
+                        $receivingReport->receiving_number,
+                        "Received {$item->quantity_damaged} damaged units from PO {$receivingReport->purchaseOrder->po_number}"
+                    );
                 }
             }
         }

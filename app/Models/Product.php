@@ -143,21 +143,58 @@ class Product extends Model implements HasMedia
             'new_stock' => $value,
         ]);
     }
-    
-    public function setStockQuantityAttribute($value)
+
+    /**
+     * Get the history events for this product
+     */
+    public function historyEvents()
     {
-        $this->attributes['stock_quantity'] = $value;
-        $this->attributes['stock'] = $value;
-        
-        // Log the stock change
-        \Log::info("Product stock_quantity updated", [
-            'product_id' => $this->id ?? 'new',
-            'product_name' => $this->name ?? 'unknown',
-            'old_stock_quantity' => $this->getOriginal('stock_quantity') ?? 0,
-            'new_stock_quantity' => $value,
+        return $this->hasMany(ProductHistoryEvent::class)->orderByDesc('created_at');
+    }
+    
+    /**
+     * Record a history event for this product
+     */
+    public function recordHistory(
+        string $eventType,
+        float $quantityChange,
+        ?Model $source = null,
+        ?string $referenceNumber = null,
+        ?string $notes = null
+    ): ProductHistoryEvent {
+        return $this->historyEvents()->create([
+            'event_type' => $eventType,
+            'event_source_type' => $source ? get_class($source) : null,
+            'event_source_id' => $source?->id,
+            'quantity_change' => $quantityChange,
+            'quantity_after' => $this->stock_quantity,
+            'user_id' => auth()->id(),
+            'reference_number' => $referenceNumber,
+            'notes' => $notes,
         ]);
     }
 
+    // Update stock_quantity setter to record history
+    public function setStockQuantityAttribute($value)
+    {
+        $oldValue = $this->stock_quantity ?? 0;
+        $change = $value - $oldValue;
+        
+        $this->attributes['stock_quantity'] = $value;
+        $this->attributes['stock'] = $value;
+        
+        // Only record history if this is an existing product being updated
+        if ($this->exists && $change !== 0) {
+            $this->recordHistory(
+                ProductHistoryEvent::TYPE_SYSTEM,
+                $change,
+                null,
+                null,
+                'Stock quantity updated directly'
+            );
+        }
+    }
+    
     /**
      * Scope a query to only include featured products.
      *

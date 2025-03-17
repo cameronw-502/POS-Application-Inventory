@@ -488,6 +488,7 @@ class ProductResource extends Resource
                     ->url(fn (Product $record) => route('product.barcode', $record))
                     ->openUrlInNewTab(),
             ])
+            // Remove the recordClickBehavior line that's causing the error
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -629,38 +630,147 @@ class ProductResource extends Resource
 
                 Infolists\Components\Section::make('Purchase Orders')
                     ->schema([
-                        Infolists\Components\RepeatableEntry::make('purchaseOrderItems')
+                        Infolists\Components\TextEntry::make('purchaseOrderItems')
                             ->label(false)
-                            ->filter(function ($query) {
-                                return $query->whereHas('purchaseOrder', function ($q) {
-                                    $q->whereIn('status', ['ordered', 'partially_received']);
-                                });
+                            ->getStateUsing(function ($record) {
+                                // Filter the purchase order items here
+                                $filteredItems = $record->purchaseOrderItems()
+                                    ->whereHas('purchaseOrder', function ($q) {
+                                        $q->whereIn('status', ['ordered', 'partially_received']);
+                                    })
+                                    ->get();
+                                
+                                if ($filteredItems->isEmpty()) {
+                                    return 'No purchase orders in progress.';
+                                }
+                                
+                                $html = '<div class="space-y-6">';
+                                foreach ($filteredItems as $item) {
+                                    $po = $item->purchaseOrder;
+                                    $html .= '
+                                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 border-t-4 border-blue-500">
+                                        <div class="grid grid-cols-5 gap-4">
+                                            <div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">PO Number</div>
+                                                <div class="font-medium dark:text-white">
+                                                    <a href="'. route('filament.admin.resources.purchase-orders.view', ['record' => $po->id]) .'" 
+                                                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                                        '. htmlspecialchars($po->po_number) .'
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Order Date</div>
+                                                <div class="dark:text-gray-300">'. $po->order_date?->format('M j, Y') .'</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Ordered</div>
+                                                <div class="dark:text-gray-300">'. number_format($item->quantity) .'</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Received</div>
+                                                <div class="dark:text-gray-300">'. number_format($item->quantity_received ?? 0) .'</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Expected Delivery</div>
+                                                <div class="dark:text-gray-300">'. ($po->expected_delivery_date?->format('M j, Y') ?? 'Not specified') .'</div>
+                                            </div>
+                                        </div>
+                                    </div>';
+                                }
+                                $html .= '</div>';
+                                
+                                return new \Illuminate\Support\HtmlString($html);
                             })
-                            ->schema([
-                                Infolists\Components\TextEntry::make('purchaseOrder.po_number')
-                                    ->label('PO Number')
-                                    ->url(fn ($record) => $record->purchaseOrder ? 
-                                        route('filament.admin.resources.purchase-orders.view', ['record' => $record->purchaseOrder->id]) : null),
-                                    
-                                Infolists\Components\TextEntry::make('purchaseOrder.order_date')
-                                    ->label('Order Date')
-                                    ->date(),
-                                    
-                                Infolists\Components\TextEntry::make('quantity')
-                                    ->label('Ordered'),
-                                    
-                                Infolists\Components\TextEntry::make('quantity_received')
-                                    ->label('Received')
-                                    ->default(0),
-                                    
-                                Infolists\Components\TextEntry::make('purchaseOrder.expected_delivery_date')
-                                    ->label('Expected')
-                                    ->date(),
-                            ])
-                            ->columns(5),
+                            ->html()
+                            ->columnSpanFull(),
                     ])
                     ->collapsed()
                     ->visible(fn (Product $record) => $record->quantity_on_order > 0),
+
+                Infolists\Components\Section::make('Product History')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('historyEvents')
+                            ->label('')
+                            ->columnSpanFull()
+                            ->getStateUsing(function ($record) {
+                                $events = $record->historyEvents()->with('user')->latest()->get();
+                                
+                                // Group and deduplicate events
+                                $uniqueEvents = collect();
+                                $seenKeys = [];
+                                
+                                foreach ($events as $event) {
+                                    $key = $event->event_type . '-' . $event->reference_number . '-' . $event->quantity_change;
+                                    if (!in_array($key, $seenKeys)) {
+                                        $uniqueEvents->push($event);
+                                        $seenKeys[] = $key;
+                                    }
+                                }
+                                
+                                if ($uniqueEvents->isEmpty()) {
+                                    return 'No history recorded for this product.';
+                                }
+                                
+                                // Create a table layout
+                                $html = '
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                        <thead class="bg-gray-50 dark:bg-gray-800">
+                                            <tr>
+                                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Code</th>
+                                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Change</th>
+                                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reference</th>
+                                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">';
+                                
+                                foreach ($uniqueEvents as $event) {
+                                    $changeClass = $event->quantity_change > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                                    $changePrefix = $event->quantity_change > 0 ? '+' : '';
+                                    
+                                    $html .= '
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <td class="px-3 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                                    ' . htmlspecialchars($event->event_type) . '
+                                                </span>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">' . htmlspecialchars($event->event_type_description) . '</div>
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                ' . $event->created_at->format('M j, Y g:i A') . '
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap">
+                                                <span class="' . $changeClass . ' font-medium">' . $changePrefix . number_format($event->quantity_change, 0) . '</span>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Balance: ' . number_format($event->quantity_after, 0) . '</div>
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                ' . ($event->reference_number ? htmlspecialchars($event->reference_number) : '-') . '
+                                            </td>
+                                            <td class="px-3 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                                ' . ($event->notes ? htmlspecialchars($event->notes) : '-') . '
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                                    ' . htmlspecialchars($event->user_initials ?? 'SYS') . '
+                                                </span>
+                                            </td>
+                                        </tr>';
+                                }
+                                
+                                $html .= '
+                                        </tbody>
+                                    </table>
+                                </div>';
+                                
+                                return new \Illuminate\Support\HtmlString($html);
+                            })
+                            ->html(),
+                    ])
+                    ->collapsed(),
             ]);
     }
 
@@ -669,6 +779,7 @@ class ProductResource extends Resource
         return [
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
+            'view' => Pages\ViewProduct::route('/{record}'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }

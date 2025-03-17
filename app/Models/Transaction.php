@@ -97,4 +97,23 @@ class Transaction extends Model
     {
         return $this->total_amount - $this->amount_paid;
     }
+
+    /**
+     * Record product history for this transaction
+     */
+    public function recordProductHistory()
+    {
+        foreach ($this->items as $item) {
+            $product = $item->product;
+            if ($product) {
+                $product->recordHistory(
+                    ProductHistoryEvent::TYPE_SALE,
+                    -$item->quantity, // Negative for sales
+                    $this,
+                    $this->transaction_number,
+                    "Sold {$item->quantity} units - Transaction #{$this->transaction_number}"
+                );
+            }
+        }
+    }
 }

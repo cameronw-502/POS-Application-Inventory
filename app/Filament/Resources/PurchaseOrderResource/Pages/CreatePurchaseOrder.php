@@ -6,6 +6,7 @@ use App\Filament\Resources\PurchaseOrderResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use App\Models\Product;
+use App\Models\ProductHistoryEvent;
 use Illuminate\Support\Facades\Auth;
 
 class CreatePurchaseOrder extends CreateRecord
@@ -65,7 +66,7 @@ class CreatePurchaseOrder extends CreateRecord
         return $data;
     }
     
-    // After creation, calculate totals
+    // After creation, calculate totals and record product history
     protected function afterCreate(): void
     {
         $purchaseOrder = $this->record;
@@ -75,6 +76,20 @@ class CreatePurchaseOrder extends CreateRecord
         
         // Save the updated totals
         $purchaseOrder->saveQuietly();
+        
+        // Record history for each product in the PO
+        foreach ($purchaseOrder->items as $item) {
+            if ($item->product) {
+                // Record a history event with the ordered quantity
+                $item->product->recordHistory(
+                    ProductHistoryEvent::TYPE_PURCHASE_ORDER, 
+                    0, // No immediate quantity change
+                    $purchaseOrder,
+                    $purchaseOrder->po_number,
+                    "Ordered {$item->quantity} units on PO {$purchaseOrder->po_number}"
+                );
+            }
+        }
     }
     
     // Helper method to calculate totals
