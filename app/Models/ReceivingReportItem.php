@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ReceivingReportItem extends Model implements HasMedia
 {
@@ -38,9 +39,30 @@ class ReceivingReportItem extends Model implements HasMedia
         return $this->belongsTo(Product::class);
     }
 
-    // Register media collections
+    /**
+     * Register media collections
+     */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('damage_images');
+        $this->addMediaCollection('damage_images')
+            ->useDisk('public')  // Use the public disk for better URL access
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    }
+
+    /**
+     * Register media conversions
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->sharpen(10)
+            ->performOnCollections('damage_images');
+            
+        $this->addMediaConversion('preview')
+            ->width(600)
+            ->height(600)
+            ->performOnCollections('damage_images');
     }
 }

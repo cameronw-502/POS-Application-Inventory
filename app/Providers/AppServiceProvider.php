@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Filament\Forms\Components\Repeater;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,5 +42,12 @@ class AppServiceProvider extends ServiceProvider
                 return $data;
             });
         });
+
+        // Force HTTPS for URLs in production or use the APP_URL in development
+        if(env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+        } else {
+            URL::forceRootUrl(config('app.url'));
+        }
     }
 }

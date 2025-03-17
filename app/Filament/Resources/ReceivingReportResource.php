@@ -381,10 +381,31 @@ class ReceivingReportResource extends Resource
                     ->schema([
                         Infolists\Components\TextEntry::make('damage_notes'),
                         
-                        Infolists\Components\ImageEntry::make('damaged_box_images')
+                        // Use a better image display approach
+                        Infolists\Components\TextEntry::make('damaged_box_images_debug')
                             ->label('Images')
-                            ->disk('public')
-                            ->getStateUsing(fn($record) => $record->getMedia('damaged_box_images')->map->getUrl()),
+                            ->getStateUsing(function($record) {
+                                $media = $record->getMedia('damaged_box_images');
+                                if ($media->isEmpty()) {
+                                    return 'No images found.';
+                                }
+                                
+                                $html = '<div class="flex flex-wrap gap-4">';
+                                foreach ($media as $item) {
+                                    $url = $item->getUrl();
+                                    $html .= '
+                                        <div class="overflow-hidden rounded-lg shadow-md" style="max-width: 200px;">
+                                            <a href="'.$url.'" target="_blank">
+                                                <img src="'.$url.'" alt="Damage" class="w-full h-auto object-cover rounded-t-lg" />
+                                                <div class="p-2 text-xs bg-gray-100">'.basename($item->file_name).'</div>
+                                            </a>
+                                        </div>';
+                                }
+                                $html .= '</div>';
+                                return new \Illuminate\Support\HtmlString($html);
+                            })
+                            ->columnSpanFull()
+                            ->html(),
                     ])
                     ->visible(fn ($record) => $record->has_damaged_boxes),
                     
@@ -415,12 +436,32 @@ class ReceivingReportResource extends Resource
                                 Infolists\Components\TextEntry::make('notes')
                                     ->columnSpanFull(),
                                     
-                                Infolists\Components\ImageEntry::make('damage_images')
+                                // Improved image display for damaged items
+                                Infolists\Components\TextEntry::make('damage_images_debug')
                                     ->label('Damage Images')
-                                    ->disk('public')
-                                    ->getStateUsing(fn($record) => $record->getMedia('damage_images')->map->getUrl())
+                                    ->getStateUsing(function($record) {
+                                        $media = $record->getMedia('damage_images');
+                                        if ($media->isEmpty()) {
+                                            return 'No damage images.';
+                                        }
+                                        
+                                        $html = '<div class="flex flex-wrap gap-4">';
+                                        foreach ($media as $item) {
+                                            $url = $item->getUrl();
+                                            $html .= '
+                                                <div class="overflow-hidden rounded-lg shadow-md" style="max-width: 200px;">
+                                                    <a href="'.$url.'" target="_blank">
+                                                        <img src="'.$url.'" alt="Item damage" class="w-full h-auto object-cover rounded-t-lg" />
+                                                        <div class="p-2 text-xs bg-gray-100">'.basename($item->file_name).'</div>
+                                                    </a>
+                                                </div>';
+                                        }
+                                        $html .= '</div>';
+                                        return new \Illuminate\Support\HtmlString($html);
+                                    })
                                     ->visible(fn ($record) => $record->quantity_damaged > 0)
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->html(),
                             ])
                             ->columns(5),
                     ]),

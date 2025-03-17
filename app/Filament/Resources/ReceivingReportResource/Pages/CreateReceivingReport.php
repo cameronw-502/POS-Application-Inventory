@@ -119,84 +119,102 @@ class CreateReceivingReport extends CreateRecord
     {
         $receivingReport = $this->record;
         
-        // Process damaged box images
+        // Debug information
+        \Log::info("Processing ReceivingReport after create", [
+            'id' => $receivingReport->id,
+            'number' => $receivingReport->receiving_number,
+            'has_damaged_boxes' => $this->data['has_damaged_boxes'] ?? false,
+            'has_images' => !empty($this->data['damaged_box_images'] ?? []),
+            'image_count' => count($this->data['damaged_box_images'] ?? [])
+        ]);
+        
+        // Process damaged box images with better error handling
         if ($this->data['has_damaged_boxes'] && !empty($this->data['damaged_box_images'])) {
             foreach ($this->data['damaged_box_images'] as $image) {
                 try {
-                    // Find the file, trying multiple potential locations
-                    $possiblePaths = [
-                        storage_path('app/public/' . $image),
-                        storage_path('app/livewire-tmp/' . basename($image)),
-                        storage_path('app/livewire-tmp/' . $image),
-                        public_path('storage/' . $image),
-                        $image // For absolute paths
-                    ];
+                    // More reliable approach using addMediaFromDisk
+                    \Log::info("Processing image: " . $image);
                     
-                    $foundFile = null;
-                    foreach ($possiblePaths as $path) {
-                        if (file_exists($path)) {
-                            $foundFile = $path;
-                            break;
-                        }
-                    }
+                    // Get real path from storage
+                    $path = storage_path('app/public/' . $image);
+                    $tmpPath = storage_path('app/livewire-tmp/' . basename($image));
                     
-                    if ($foundFile) {
-                        \Log::info("Adding image from: " . $foundFile);
-                        
-                        // Use copyMedia instead of addMedia (more reliable)
-                        $receivingReport->copyMedia($foundFile)
+                    if (file_exists($path)) {
+                        \Log::info("File exists at: " . $path);
+                        $receivingReport->addMedia($path)
+                            ->preservingOriginal()
+                            ->toMediaCollection('damaged_box_images', 'public');
+                    } elseif (file_exists($tmpPath)) {
+                        \Log::info("File exists at temp path: " . $tmpPath);
+                        $receivingReport->addMedia($tmpPath)
+                            ->preservingOriginal()
                             ->toMediaCollection('damaged_box_images', 'public');
                     } else {
-                        \Log::error("Could not find file at any potential location: " . $image);
+                        \Log::warning("File not found at expected paths", [
+                            'original' => $image,
+                            'path' => $path,
+                            'tmpPath' => $tmpPath
+                        ]);
                     }
                 } catch (\Exception $e) {
                     \Log::error("Error adding damaged box image", [
                         'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
+                        'trace' => $e->getTraceAsString(),
+                        'image' => $image
                     ]);
                 }
             }
+            
+            // Verify media was added
+            $mediaCount = $receivingReport->getMedia('damaged_box_images')->count();
+            \Log::info("Media added to damaged_box_images: " . $mediaCount);
         }
         
-        // Process damage images for each item
+        // Process damage images for each item with better error handling
         foreach ($receivingReport->items as $index => $item) {
             $itemData = $this->data['items'][$index] ?? null;
             if (!$itemData) continue;
             
             $damageImages = $itemData['damage_images'] ?? [];
+            \Log::info("Processing item damage images", [
+                'item_id' => $item->id,
+                'image_count' => count($damageImages)
+            ]);
             
             foreach ($damageImages as $image) {
                 try {
-                    // Same path handling as above
-                    $filePath = storage_path('app/public/' . str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $image));
-                    $tempPath = storage_path('app/livewire-tmp/' . basename($image));
+                    $path = storage_path('app/public/' . $image);
+                    $tmpPath = storage_path('app/livewire-tmp/' . basename($image));
                     
-                    $possiblePaths = [
-                        $filePath,
-                        $tempPath,
-                        storage_path('app/public/livewire-tmp/' . basename($image))
-                    ];
-                    
-                    $validPath = null;
-                    foreach ($possiblePaths as $path) {
-                        if (file_exists($path)) {
-                            $validPath = $path;
-                            break;
-                        }
-                    }
-                    
-                    if ($validPath) {
-                        $item->addMedia($validPath)
-                             ->preservingOriginal()
-                             ->toMediaCollection('damage_images');
+                    if (file_exists($path)) {
+                        $item->addMedia($path)
+                            ->preservingOriginal()
+                            ->toMediaCollection('damage_images', 'public');
+                        \Log::info("Added damage image from: " . $path);
+                    } elseif (file_exists($tmpPath)) {
+                        $item->addMedia($tmpPath)
+                            ->preservingOriginal()
+                            ->toMediaCollection('damage_images', 'public');
+                        \Log::info("Added damage image from tmp: " . $tmpPath);
+                    } else {
+                        \Log::warning("Item damage image not found", [
+                            'original' => $image,
+                            'path' => $path,
+                            'tmpPath' => $tmpPath
+                        ]);
                     }
                 } catch (\Exception $e) {
                     \Log::error("Failed to add item damage image", [
                         'error' => $e->getMessage(),
-                        'item_id' => $item->id
+                        'item_id' => $item->id,
+                        'image' => $image
                     ]);
                 }
             }
+            
+            // Verify media was added
+            $mediaCount = $item->getMedia('damage_images')->count();
+            \Log::info("Media added to item damage_images: " . $mediaCount);
         }
         
         // Update purchase order status after receiving

@@ -96,20 +96,31 @@ class Product extends Model implements HasMedia
             ->saveSlugsTo('slug');
     }
 
+    /**
+     * Register media collections
+     */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('product-images')
-            ->useFallbackUrl('/images/placeholder.jpg')
-            ->useFallbackPath(public_path('/images/placeholder.jpg'))
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(200)
-                    ->height(200);
-                
-                $this->addMediaConversion('preview')
-                    ->width(400)
-                    ->height(400);
-            });
+        $this->addMediaCollection('product_images')
+            ->useDisk('public')  // Explicitly set disk
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    }
+
+    /**
+     * Register media conversions
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->sharpen(10)
+            ->performOnCollections('product_images');
+            
+        $this->addMediaConversion('preview')
+            ->width(600)
+            ->height(600)
+            ->performOnCollections('product_images');
     }
 
     public function generateBarcode()
