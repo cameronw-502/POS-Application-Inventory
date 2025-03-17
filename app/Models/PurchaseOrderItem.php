@@ -15,7 +15,6 @@ class PurchaseOrderItem extends Model
         'product_id',
         'quantity',
         'unit_price',
-        'subtotal',
         'quantity_received',
         'note',
         'supplier_sku',
@@ -25,7 +24,8 @@ class PurchaseOrderItem extends Model
     protected $casts = [
         'unit_price' => 'decimal:2',
         'subtotal' => 'decimal:2',
-        'quantity_received' => 'integer', // Make sure this is cast as integer
+        'quantity' => 'integer',
+        'quantity_received' => 'integer', 
     ];
 
     /**
@@ -36,13 +36,16 @@ class PurchaseOrderItem extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (!isset($model->quantity_received)) {
+            if (is_null($model->quantity_received)) {
                 $model->quantity_received = 0;
             }
             $model->subtotal = $model->quantity * $model->unit_price;
         });
 
         static::updating(function ($model) {
+            if (is_null($model->quantity_received)) {
+                $model->quantity_received = 0;
+            }
             $model->subtotal = $model->quantity * $model->unit_price;
         });
     }
@@ -67,7 +70,7 @@ class PurchaseOrderItem extends Model
      */
     public function getRemainingQuantityAttribute(): int
     {
-        return max(0, $this->quantity - $this->quantity_received);
+        return max(0, $this->quantity - ($this->quantity_received ?? 0));
     }
 
     /**
@@ -75,6 +78,14 @@ class PurchaseOrderItem extends Model
      */
     public function getIsFullyReceivedAttribute(): bool
     {
-        return $this->quantity_received >= $this->quantity;
+        return ($this->quantity_received ?? 0) >= $this->quantity;
+    }
+
+    /**
+     * Make sure quantity_received is never null
+     */
+    public function getQuantityReceivedAttribute($value)
+    {
+        return $value ?? 0;
     }
 }

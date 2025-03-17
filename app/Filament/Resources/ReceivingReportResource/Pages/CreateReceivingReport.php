@@ -217,25 +217,81 @@ class CreateReceivingReport extends CreateRecord
             \Log::info("Media added to item damage_images: " . $mediaCount);
         }
         
-        // Update purchase order status after receiving
-        $purchaseOrder = $receivingReport->purchaseOrder;
-        if ($purchaseOrder) {
-            $allItemsReceived = true;
-            foreach ($purchaseOrder->items as $poItem) {
-                if ($poItem->quantity_received < $poItem->quantity) {
-                    $allItemsReceived = false;
-                    break;
+        // Update purchase order items with received quantities 
+        // Wrap in transaction to ensure all updates are atomic
+        \DB::transaction(function() use ($receivingReport) {
+            foreach ($receivingReport->items as $item) {
+                if ($item->purchase_order_item_id && ($item->quantity_good > 0 || $item->quantity_damaged > 0)) {
+                    $poItem = PurchaseOrderItem::find($item->purchase_order_item_id);
+                    if ($poItem) {
+                        // Get current value before update for logging
+                        $currentReceived = $poItem->quantity_received ?? 0;
+                        $newReceived = $currentReceived + $item->quantity_good + $item->quantity_damaged;
+                        
+                        // Update the quantity_received field in the purchase_order_item
+                        $poItem->quantity_received = $newReceived;
+                        $result = $poItem->save();
+                        
+                        \Log::info('Updated PO Item received quantity', [
+                            'po_item_id' => $poItem->id,
+                            'previous_qty_received' => $currentReceived,
+                            'additional_qty' => ($item->quantity_good + $item->quantity_damaged),
+                            'new_qty_received' => $newReceived,
+                            'total_ordered' => $poItem->quantity,
+                            'save_result' => $result,
+                            'poItem_after_save' => $poItem->fresh()->quantity_received
+                        ]);
+                    }
                 }
             }
             
-            if ($allItemsReceived) {
-                $purchaseOrder->status = 'received';
-            } else {
-                $purchaseOrder->status = 'partially_received';
+            // Update purchase order status after receiving
+            $purchaseOrder = $receivingReport->purchaseOrder;
+            if ($purchaseOrder) {
+                $allItemsReceived = true;
+                $anyItemsReceived = false;
+                $totalItems = 0;
+                $fullyReceivedItems = 0;
+                
+                // Reload purchase order with fresh related data
+                $purchaseOrder->load('items');
+                
+                foreach ($purchaseOrder->items as $poItem) {
+                    $totalItems++;
+                    if ($poItem->quantity_received > 0) {
+                        $anyItemsReceived = true;
+                    }
+                    
+                    if ($poItem->quantity_received >= $poItem->quantity) {
+                        $fullyReceivedItems++;
+                    } else {
+                        $allItemsReceived = false;
+                    }
+                }
+                
+                \Log::info('Checking PO status', [
+                    'po_id' => $purchaseOrder->id,
+                    'po_number' => $purchaseOrder->po_number,
+                    'total_items' => $totalItems,
+                    'fully_received_items' => $fullyReceivedItems,
+                    'all_items_received' => $allItemsReceived,
+                    'any_items_received' => $anyItemsReceived
+                ]);
+                
+                if ($allItemsReceived && $totalItems > 0) {
+                    $purchaseOrder->status = 'received';
+                    \Log::info("Setting PO status to 'received'");
+                } elseif ($anyItemsReceived) {
+                    $purchaseOrder->status = 'partially_received';
+                    \Log::info("Setting PO status to 'partially_received'");
+                } else {
+                    $purchaseOrder->status = 'ordered';
+                    \Log::info("Setting PO status to 'ordered'");
+                }
+                
+                $purchaseOrder->save();
             }
-            
-            $purchaseOrder->save();
-        }
+        });
         
         // Update inventory quantities
         foreach ($receivingReport->items as $item) {

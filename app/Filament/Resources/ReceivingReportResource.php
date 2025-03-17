@@ -161,20 +161,29 @@ class ReceivingReportResource extends Resource
                                         Forms\Components\Placeholder::make('order_info')
                                             ->content(function (Forms\Get $get) {
                                                 $poItemId = $get('purchase_order_item_id');
-                                                $poItem = PurchaseOrderItem::find($poItemId);
+                                                // Use fresh query to avoid caching issues
+                                                $poItem = PurchaseOrderItem::withoutGlobalScopes()->where('id', $poItemId)->first();
                                                 
                                                 if (!$poItem) {
                                                     return '';
                                                 }
                                                 
                                                 $ordered = $poItem->quantity;
-                                                $received = $poItem->quantity_received;
+                                                $received = $poItem->quantity_received ?? 0;
+                                                $remaining = max(0, $ordered - $received);
+                                                
+                                                \Log::info('PO Item info displayed', [
+                                                    'id' => $poItemId,
+                                                    'ordered' => $ordered,
+                                                    'received' => $received,
+                                                    'remaining' => $remaining,
+                                                ]);
                                                 
                                                 return new HtmlString("
                                                     <div class='text-sm p-2 bg-gray-100 rounded'>
                                                         <p><strong>Ordered:</strong> {$ordered}</p>
                                                         <p><strong>Already Received:</strong> {$received}</p>
-                                                        <p><strong>Remaining:</strong> " . ($ordered - $received) . "</p>
+                                                        <p><strong>Remaining:</strong> {$remaining}</p>
                                                     </div>
                                                 ");
                                             })
