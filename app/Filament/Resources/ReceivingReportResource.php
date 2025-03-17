@@ -381,7 +381,7 @@ class ReceivingReportResource extends Resource
                     ->schema([
                         Infolists\Components\TextEntry::make('damage_notes'),
                         
-                        // Use a better image display approach
+                        // Updated image display without captions
                         Infolists\Components\TextEntry::make('damaged_box_images_debug')
                             ->label('Images')
                             ->getStateUsing(function($record) {
@@ -396,8 +396,7 @@ class ReceivingReportResource extends Resource
                                     $html .= '
                                         <div class="overflow-hidden rounded-lg shadow-md" style="max-width: 200px;">
                                             <a href="'.$url.'" target="_blank">
-                                                <img src="'.$url.'" alt="Damage" class="w-full h-auto object-cover rounded-t-lg" />
-                                                <div class="p-2 text-xs bg-gray-100">'.basename($item->file_name).'</div>
+                                                <img src="'.$url.'" alt="Damage" class="w-full h-auto object-cover rounded-lg" />
                                             </a>
                                         </div>';
                                 }
@@ -436,7 +435,7 @@ class ReceivingReportResource extends Resource
                                 Infolists\Components\TextEntry::make('notes')
                                     ->columnSpanFull(),
                                     
-                                // Improved image display for damaged items
+                                // Updated image display without captions
                                 Infolists\Components\TextEntry::make('damage_images_debug')
                                     ->label('Damage Images')
                                     ->getStateUsing(function($record) {
@@ -451,8 +450,7 @@ class ReceivingReportResource extends Resource
                                             $html .= '
                                                 <div class="overflow-hidden rounded-lg shadow-md" style="max-width: 200px;">
                                                     <a href="'.$url.'" target="_blank">
-                                                        <img src="'.$url.'" alt="Item damage" class="w-full h-auto object-cover rounded-t-lg" />
-                                                        <div class="p-2 text-xs bg-gray-100">'.basename($item->file_name).'</div>
+                                                        <img src="'.$url.'" alt="Item damage" class="w-full h-auto object-cover rounded-lg" />
                                                     </a>
                                                 </div>';
                                         }
