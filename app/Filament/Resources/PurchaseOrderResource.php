@@ -224,11 +224,18 @@ class PurchaseOrderResource extends Resource
                                     ->numeric()
                                     ->default(1)
                                     ->required()
-                                    ->live()
+                                    // Increase debounce time and ensure calculations only happen when focus is lost
+                                    ->live(onBlur: true)
+                                    ->debounce(800) // Increased from 300ms to 800ms
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                        $unitPrice = $get('unit_price') ?? 0;
-                                        $subtotal = $state * $unitPrice;
-                                        $set('subtotal', $subtotal);
+                                        // Ensure this only happens after the user has completed typing
+                                        // Only calculate if we have valid input
+                                        if (is_numeric($state) && is_numeric($get('unit_price'))) {
+                                            $unitPrice = (float)$get('unit_price');
+                                            $quantity = (float)$state;
+                                            $subtotal = $quantity * $unitPrice;
+                                            $set('subtotal', round($subtotal, 2));
+                                        }
                                     })
                                     ->afterStateHydrated(function ($component, $state, Forms\Set $set, Forms\Get $get) {
                                         // If we have a unit_price, calculate the subtotal right away
@@ -243,11 +250,18 @@ class PurchaseOrderResource extends Resource
                                     ->numeric()
                                     ->prefix('$')
                                     ->required()
-                                    ->live()
+                                    // Increase debounce time and ensure calculations only happen when focus is lost
+                                    ->live(onBlur: true)
+                                    ->debounce(800) // Increased from 300ms to 800ms
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                        $quantity = $get('quantity') ?? 0;
-                                        $subtotal = $state * $quantity;
-                                        $set('subtotal', $subtotal);
+                                        // Ensure this only happens after the user has completed typing
+                                        // Only calculate if we have valid input
+                                        if (is_numeric($state) && is_numeric($get('quantity'))) {
+                                            $unitPrice = (float)$state;
+                                            $quantity = (float)$get('quantity');
+                                            $subtotal = $quantity * $unitPrice;
+                                            $set('subtotal', round($subtotal, 2));
+                                        }
                                     }),
                                     
                                 Forms\Components\TextInput::make('subtotal')

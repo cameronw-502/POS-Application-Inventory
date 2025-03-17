@@ -120,9 +120,11 @@ class ProductResource extends Resource
                                             ->step(0.01)
                                             ->prefix('$')
                                             ->required()
+                                            // Improve debounce and calculation timing
                                             ->live(onBlur: true)
+                                            ->debounce(800) // Increased from the default
                                             ->afterStateUpdated(function ($state, Forms\Set $set, Get $get) {
-                                                // Skip calculation if any required value is missing
+                                                // Skip calculation if any required value is missing or during typing
                                                 if ($state === null || $state === '' || !is_numeric($state)) return;
                                                 if ($get('margin_percentage') === null || !is_numeric($get('margin_percentage'))) return;
                                                 
@@ -142,9 +144,11 @@ class ProductResource extends Resource
                                             ->step(0.01)
                                             ->suffix('%')
                                             ->required()
+                                            // Improve debounce and calculation timing
                                             ->live(onBlur: true)
+                                            ->debounce(800) // Increased from the default
                                             ->afterStateUpdated(function ($state, Forms\Set $set, Get $get) {
-                                                // Skip calculation if any required value is missing
+                                                // Skip calculation if any required value is missing or during typing
                                                 if ($state === null || $state === '' || !is_numeric($state)) return;
                                                 if ($get('supplier_price') === null || !is_numeric($get('supplier_price'))) return;
                                                 
@@ -163,9 +167,11 @@ class ProductResource extends Resource
                                             ->numeric()
                                             ->step(0.01)
                                             ->prefix('$')
+                                            // Improve debounce and calculation timing
                                             ->live(onBlur: true)
+                                            ->debounce(800) // Increased from the default
                                             ->afterStateUpdated(function ($state, Forms\Set $set, Get $get) {
-                                                // Skip calculation if any required value is missing
+                                                // Skip calculation if any required value is missing or during typing
                                                 if ($state === null || $state === '' || !is_numeric($state)) return;
                                                 if ($get('supplier_price') === null || !is_numeric($get('supplier_price'))) return;
                                                 

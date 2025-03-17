@@ -198,19 +198,28 @@ class ReceivingReportResource extends Resource
                                             ->required()
                                             ->minValue(0)
                                             ->default(0)
-                                            ->live()
+                                            // Improve calculation performance
+                                            ->live(onBlur: true)
+                                            ->debounce(800) // Increased from 300ms to 800ms
                                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                                // Wait for complete input before calculating
+                                                if (!is_numeric($get('quantity_good')) || !is_numeric($get('quantity_damaged'))) {
+                                                    return;
+                                                }
+                                                
                                                 $good = (int) $get('quantity_good');
                                                 $damaged = (int) $get('quantity_damaged');
                                                 $set('quantity_received', $good + $damaged);
                                                 
                                                 // Update missing
                                                 $poItemId = $get('purchase_order_item_id');
-                                                $poItem = PurchaseOrderItem::find($poItemId);
-                                                if ($poItem) {
-                                                    $ordered = $poItem->quantity;
-                                                    $alreadyReceived = $poItem->quantity_received;
-                                                    $set('quantity_missing', max(0, $ordered - $alreadyReceived - $good - $damaged));
+                                                if ($poItemId) {
+                                                    $poItem = PurchaseOrderItem::find($poItemId);
+                                                    if ($poItem) {
+                                                        $ordered = $poItem->quantity;
+                                                        $alreadyReceived = $poItem->quantity_received ?? 0;
+                                                        $set('quantity_missing', max(0, $ordered - $alreadyReceived - $good - $damaged));
+                                                    }
                                                 }
                                             }),
                                             
@@ -220,19 +229,28 @@ class ReceivingReportResource extends Resource
                                             ->required()
                                             ->minValue(0)
                                             ->default(0)
-                                            ->live()
+                                            // Improve calculation performance
+                                            ->live(onBlur: true)
+                                            ->debounce(800) // Increased from 300ms to 800ms
                                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                                // Wait for complete input before calculating
+                                                if (!is_numeric($get('quantity_good')) || !is_numeric($get('quantity_damaged'))) {
+                                                    return;
+                                                }
+                                                
                                                 $good = (int) $get('quantity_good');
                                                 $damaged = (int) $get('quantity_damaged');
                                                 $set('quantity_received', $good + $damaged);
                                                 
                                                 // Update missing
                                                 $poItemId = $get('purchase_order_item_id');
-                                                $poItem = PurchaseOrderItem::find($poItemId);
-                                                if ($poItem) {
-                                                    $ordered = $poItem->quantity;
-                                                    $alreadyReceived = $poItem->quantity_received;
-                                                    $set('quantity_missing', max(0, $ordered - $alreadyReceived - $good - $damaged));
+                                                if ($poItemId) {
+                                                    $poItem = PurchaseOrderItem::find($poItemId);
+                                                    if ($poItem) {
+                                                        $ordered = $poItem->quantity;
+                                                        $alreadyReceived = $poItem->quantity_received ?? 0;
+                                                        $set('quantity_missing', max(0, $ordered - $alreadyReceived - $good - $damaged));
+                                                    }
                                                 }
                                             }),
                                             

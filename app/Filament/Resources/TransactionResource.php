@@ -92,6 +92,21 @@ class TransactionResource extends Resource
                 Forms\Components\Textarea::make('notes')
                     ->maxLength(65535)
                     ->columnSpanFull(),
+
+                Forms\Components\TextInput::make('quantity')
+                    ->required()
+                    ->numeric()
+                    ->minValue(1)
+                    ->live(onBlur: true)
+                    ->debounce(300)
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                        $quantity = $state;
+                        $unitPrice = $get('unit_price');
+                        if ($quantity && $unitPrice) {
+                            $subtotal = $quantity * $unitPrice;
+                            $set('line_total', round($subtotal, 2));
+                        }
+                    }),
             ]);
     }
 
