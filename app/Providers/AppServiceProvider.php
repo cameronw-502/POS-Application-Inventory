@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Filament\Forms\Components\Repeater;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Storage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,8 +47,27 @@ class AppServiceProvider extends ServiceProvider
         // Force HTTPS for URLs in production or use the APP_URL in development
         if(env('APP_ENV') === 'production') {
             URL::forceScheme('https');
+            // Force HTTPS for asset and storage URLs
+            $this->app['url']->forceRootUrl(config('app.url'));
         } else {
             URL::forceRootUrl(config('app.url'));
         }
+
+        // Configure storage URL for media library
+        $this->configureStorageUrl();
+    }
+
+    protected function configureStorageUrl(): void
+    {
+        // Ensure storage URLs use the correct domain
+        $baseUrl = config('app.url');
+        
+        // Remove trailing slash if present
+        $baseUrl = rtrim($baseUrl, '/');
+        
+        // Configure the storage disk URL
+        config([
+            'filesystems.disks.public.url' => $baseUrl . '/storage',
+        ]);
     }
 }
