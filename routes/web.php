@@ -221,3 +221,93 @@ Route::get('/purchase-orders/{purchaseOrder}/pdf', [PurchaseOrderController::cla
 Route::get('/receiving-reports/{receivingReport}/pdf', [ReceivingReportController::class, 'generatePdf'])
     ->name('receiving-reports.pdf')
     ->middleware(['auth']);
+
+// Add this to your routes/web.php file
+Route::get('/debug-receiving/{id}', function ($id) {
+    $report = \App\Models\ReceivingReport::with('items.media', 'media')->find($id);
+    if (!$report) return 'Report not found';
+    
+    $output = "Receiving Report: {$report->receiving_number}<br>";
+    $output .= "Items count: " . $report->items->count() . "<br>";
+    $output .= "Media count: " . $report->media->count() . "<br>";
+    
+    $output .= "<h3>Box Images:</h3>";
+    foreach ($report->getMedia('damaged_box_images') as $media) {
+        $output .= "- {$media->file_name} - Path: {$media->getPath()}<br>";
+        $output .= "<img src='{$media->getUrl()}' height='100'><br>";
+    }
+    
+    $output .= "<h3>Items and their images:</h3>";
+    foreach ($report->items as $item) {
+        $output .= "Item {$item->id} - {$item->product->name} - Damaged qty: {$item->quantity_damaged}<br>";
+        foreach ($item->getMedia('damage_images') as $media) {
+            $output .= "- {$media->file_name} - Path: {$media->getPath()}<br>";
+            $output .= "<img src='{$media->getUrl()}' height='100'><br>";
+        }
+    }
+    
+    return $output;
+});
+
+// Test route to see raw item data - add at the end of your routes file
+Route::get('/test-receiving/{id}', function ($id) {
+    $report = \App\Models\ReceivingReport::with(['items.product', 'purchaseOrder'])->find($id);
+    if (!$report) return "Report not found";
+    
+    $output = "<h2>Raw data for Receiving Report #{$report->receiving_number}</h2>";
+    $output .= "<p>Items count: " . $report->items->count() . "</p>";
+    
+    $output .= "<table border='1' cellpadding='5'>
+    <tr>
+        <th>ID</th>
+        <th>Product ID</th>
+        <th>Product Name</th>
+        <th>Qty Received</th>
+        <th>Qty Damaged</th>
+        <th>Qty Missing</th>
+    </tr>";
+    
+    foreach ($report->items as $item) {
+        $output .= "<tr>
+            <td>{$item->id}</td>
+            <td>{$item->product_id}</td>
+            <td>" . ($item->product ? $item->product->name : 'MISSING PRODUCT') . "</td>
+            <td>{$item->quantity_received}</td>
+            <td>{$item->quantity_damaged}</td>
+            <td>{$item->quantity_missing}</td>
+        </tr>";
+    }
+    $output .= "</table>";
+    
+    return $output;
+})->middleware(['auth']);
+
+// Direct fix for specific receiving report
+Route::get('/fix-receiving/{id}', function ($id) {
+    $report = \App\Models\ReceivingReport::with(['items.purchaseOrderItem', 'items.product'])->find($id);
+    if (!$report) return "Report not found";
+    
+    $updated = 0;
+    
+    // Ensure each item has the right relationships
+    foreach ($report->items as $item) {
+        $poItem = $item->purchaseOrderItem;
+        if (!$poItem) continue;
+        
+        // Ensure product_id is correctly set
+        if (!$item->product_id && $poItem->product_id) {
+            $item->product_id = $poItem->product_id;
+            $item->save();
+            $updated++;
+        }
+        
+        // Make sure quantities are correct
+        if ($item->quantity_received < ($item->quantity_good + $item->quantity_damaged)) {
+            $item->quantity_received = $item->quantity_good + $item->quantity_damaged;
+            $item->save();
+            $updated++;
+        }
+    }
+    
+    return "Fixed $updated items for receiving report #{$report->receiving_number}";
+})->middleware(['auth']);

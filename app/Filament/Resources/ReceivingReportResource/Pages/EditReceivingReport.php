@@ -222,4 +222,24 @@ class EditReceivingReport extends EditRecord
         
         return $result;
     }
+    
+    protected function afterSave(): void
+    {
+        $report = $this->record;
+        
+        // Process damaged box images
+        if ($report->has_damaged_boxes) {
+            if (!empty($this->data['damaged_box_images'])) {
+                // Clear existing images to avoid duplicates
+                $report->clearMediaCollection('damaged_box_images');
+                
+                // Add new images
+                foreach ($this->data['damaged_box_images'] as $image) {
+                    if (is_string($image) && file_exists(storage_path('app/public/' . $image))) {
+                        $report->addMedia($image)->toMediaCollection('damaged_box_images');
+                    }
+                }
+            }
+        }
+    }
 }

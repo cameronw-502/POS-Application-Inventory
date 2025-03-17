@@ -10,7 +10,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class ReceivingReportItem extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia;
+    use InteractsWithMedia;
 
     protected $fillable = [
         'receiving_report_id',
@@ -21,8 +21,6 @@ class ReceivingReportItem extends Model implements HasMedia
         'quantity_damaged',
         'quantity_missing',
         'notes',
-        'is_damaged',
-        'damage_description',
     ];
 
     public function receivingReport(): BelongsTo

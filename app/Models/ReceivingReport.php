@@ -18,7 +18,7 @@ class ReceivingReport extends Model implements HasMedia
         'purchase_order_id',
         'receiving_number',
         'received_date',
-        'received_by',
+        'received_by_user_id',
         'status',
         'notes',
         'box_count',
@@ -28,6 +28,7 @@ class ReceivingReport extends Model implements HasMedia
 
     protected $casts = [
         'received_date' => 'date',
+        'has_damaged_boxes' => 'boolean',
     ];
 
     public function purchaseOrder(): BelongsTo
@@ -40,23 +41,18 @@ class ReceivingReport extends Model implements HasMedia
         return $this->hasMany(ReceivingReportItem::class);
     }
 
-    public function receivedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'received_by');
-    }
-
     public function receivedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'received_by');
+        return $this->belongsTo(User::class, 'received_by_user_id');
     }
 
     /**
-     * Register the media collections
+     * Register media collections for this model
      */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('damaged_box_images')
-            ->useDisk('public')
+            ->useDisk('public')  // Explicitly set disk
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
     }
 

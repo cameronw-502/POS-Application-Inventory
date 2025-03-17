@@ -24,16 +24,16 @@ class ViewReceivingReport extends ViewRecord
         ];
     }
     
-    // Load related data when viewing
-    protected function mutateFormData(array $data): array
+    protected function mutateRecord($record)
     {
-        $this->record->load([
+        // Ensure all relationships are properly loaded
+        return $record->load([
             'purchaseOrder.supplier',
             'receivedByUser',
             'items.product',
             'items.purchaseOrderItem',
+            'items.media',
+            'media',
         ]);
-        
-        return $data;
     }
 }
