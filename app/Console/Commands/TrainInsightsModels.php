@@ -26,7 +26,7 @@ class TrainInsightsModels extends Command
                 DAY(created_at) as day,
                 HOUR(created_at) as hour,
                 COUNT(*) as transaction_count,
-                SUM(total_amount) as daily_sales
+                SUM(total) as daily_sales
             ')
             ->where('created_at', '>=', Carbon::now()->subYear())
             ->groupBy('day_of_week', 'month', 'day', 'hour')

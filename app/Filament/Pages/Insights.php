@@ -35,6 +35,23 @@ class Insights extends Page
     public function mount()
     {
         $this->refreshData();
+        $this->pendingPOs = PurchaseOrder::with('supplier')
+            ->where('status', 'pending')
+            ->orWhere('status', 'ordered')
+            ->orWhere('status', 'partially_received')
+            ->get()
+            ->map(function ($po) {
+                return [
+                    'id' => $po->id,
+                    'supplier' => $po->supplier ? $po->supplier->name : 'Unknown Supplier',
+                    'amount' => $po->total_amount,
+                    'due_date' => $po->expected_delivery_date,
+                    'days_until_due' => $po->expected_delivery_date ? now()->diffInDays($po->expected_delivery_date, false) : null,
+                    'urgency' => $this->calculateUrgency($po),
+                ];
+            })
+            ->take(15)
+            ->toArray();
     }
     
     public function refreshData()
@@ -282,6 +299,46 @@ class Insights extends Page
     
     protected function loadPendingPOs()
     {
-        $this->pendingPOs = PurchaseOrder::where('status', 'pending')->get()->toArray();
+        $this->pendingPOs = $this->getPendingPurchaseOrders();
+    }
+
+    protected function getPendingPurchaseOrders()
+    {
+        return PurchaseOrder::with('supplier')  // Make sure to eager load the supplier relationship
+            ->where('status', 'pending')
+            ->orWhere('status', 'ordered')
+            ->orWhere('status', 'partially_received')
+            ->get()
+            ->map(function ($po) {
+                return [
+                    'id' => $po->id,
+                    'supplier' => $po->supplier ? $po->supplier->name : 'Unknown Supplier',
+                    'amount' => $po->total_amount ?? 0,
+                    'due_date' => $po->expected_delivery_date,
+                    'days_until_due' => $po->expected_delivery_date ? now()->diffInDays($po->expected_delivery_date, false) : null,
+                    'urgency' => $this->calculateUrgency($po),
+                ];
+            })
+            ->take(15)
+            ->toArray();
+    }
+
+    protected function calculateUrgency($po): string
+    {
+        if (!isset($po->expected_delivery_date)) {
+            return 'medium';
+        }
+
+        $daysUntilDue = now()->diffInDays($po->expected_delivery_date, false);
+        
+        if ($daysUntilDue < 0) {
+            return 'critical'; // Overdue
+        } elseif ($daysUntilDue <= 3) {
+            return 'high';
+        } elseif ($daysUntilDue <= 7) {
+            return 'medium';
+        } else {
+            return 'low';
+        }
     }
 }
