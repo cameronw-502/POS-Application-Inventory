@@ -3,7 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Product;
-use App\Models\Sale;
+use App\Models\Transaction; // Change from Sale to Transaction
 use App\Models\PurchaseOrder;
 use App\Models\Register;
 use App\Models\Supplier;
@@ -75,15 +75,27 @@ class Insights extends Page
     {
         $startDate = Carbon::now()->subDays($this->daysToAnalyze);
         
-        $salesData = DB::table('sales')
-            ->select(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d") as date'), DB::raw('SUM(total) as aggregate'))
+        // Check if the DB::raw formula works with your MySQL version
+        $salesData = DB::table('transactions')
+            ->select(
+                DB::raw('DATE(created_at) as date'), 
+                DB::raw('SUM(total_amount) as aggregate')
+            )
             ->whereBetween('created_at', [$startDate, Carbon::now()])
             ->groupBy('date')
             ->orderBy('date')
             ->get();
             
-        $labels = $salesData->pluck('date')->toArray();
-        $data = $salesData->pluck('aggregate')->toArray();
+        // Initialize with empty arrays to avoid errors
+        $labels = [];
+        $data = [];
+        
+        if ($salesData->isNotEmpty()) {
+            foreach ($salesData as $row) {
+                $labels[] = Carbon::parse($row->date)->format('M d');
+                $data[] = (float) $row->aggregate;
+            }
+        }
         
         $this->salesTrend = [
             'labels' => $labels,
@@ -116,7 +128,7 @@ class Insights extends Page
         $startDate = Carbon::now()->subDays($this->daysToAnalyze);
         
         // Get hourly transaction counts - adjust to your schema
-        $hourlyData = DB::table('sales')
+        $hourlyData = DB::table('transactions') // Change from sales to transactions
             ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('COUNT(*) as count'))
             ->whereBetween('created_at', [$startDate, Carbon::now()])
             ->groupBy('hour')
@@ -148,7 +160,7 @@ class Insights extends Page
         // Calculate recommended registers based on transaction volume during peak hours
         $startDate = Carbon::now()->subDays($this->daysToAnalyze);
         
-        $busiestHourData = DB::table('sales')
+        $busiestHourData = DB::table('transactions') // Change from sales to transactions
             ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('COUNT(*) as count'))
             ->whereBetween('created_at', [$startDate, Carbon::now()])
             ->groupBy('hour')
@@ -229,13 +241,13 @@ class Insights extends Page
     protected function trainSalesModel($model)
     {
         // Get historical sales data
-        $salesData = DB::table('sales')
+        $salesData = DB::table('transactions')
             ->select(
                 DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d") as date'),
                 DB::raw('DAYOFWEEK(created_at) as day_of_week'),
                 DB::raw('DAYOFMONTH(created_at) as day_of_month'),
                 DB::raw('MONTH(created_at) as month'),
-                DB::raw('SUM(total) as total')
+                DB::raw('SUM(total_amount) as total')
             )
             ->where('created_at', '>=', Carbon::now()->subMonths(6))
             ->groupBy('date', 'day_of_week', 'day_of_month', 'month')

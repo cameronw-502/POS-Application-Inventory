@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Sale;
+use App\Models\Transaction; // Changed from Sale to Transaction
 use Carbon\Carbon;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
@@ -19,21 +19,24 @@ class TrainInsightsModels extends Command
     {
         $this->info('Training sales prediction model...');
         
-        // Get historical sales data
-        $sales = Sale::selectRaw('
+        // Changed from Sale to Transaction
+        $this->info('Raw transaction count: ' . Transaction::where('created_at', '>=', Carbon::now()->subYear())->count());
+
+        // Get historical transaction data
+        $transactions = Transaction::selectRaw('
                 DAYOFWEEK(created_at) as day_of_week,
                 MONTH(created_at) as month,
                 DAY(created_at) as day,
-                HOUR(created_at) as hour,
                 COUNT(*) as transaction_count,
-                SUM(total) as daily_sales
+                SUM(total_amount) as daily_sales
             ')
             ->where('created_at', '>=', Carbon::now()->subYear())
-            ->groupBy('day_of_week', 'month', 'day', 'hour')
+            ->where('status', 'completed') // Only include completed transactions
+            ->groupBy('day_of_week', 'month', 'day')  
             ->get();
             
-        if ($sales->count() < 10) {
-            $this->error('Not enough sales data to train the model (minimum 10 records needed)');
+        if ($transactions->count() < 10) {
+            $this->error('Not enough transaction data to train the model (minimum 10 records needed)');
             return 1;
         }
 
@@ -41,15 +44,15 @@ class TrainInsightsModels extends Command
         $samples = [];
         $labels = [];
         
-        foreach ($sales as $sale) {
+        // Change it to explicitly cast to float
+        foreach ($transactions as $transaction) {
             $samples[] = [
-                $sale->day_of_week,  // Day of week (1-7)
-                $sale->month,        // Month (1-12)
-                $sale->day,          // Day (1-31)
-                $sale->hour,         // Hour (0-23)
-                $sale->transaction_count,
+                (int) $transaction->day_of_week,  // Day of week (1-7)
+                (int) $transaction->month,        // Month (1-12)
+                (int) $transaction->day,          // Day (1-31)
+                (int) $transaction->transaction_count,
             ];
-            $labels[] = $sale->daily_sales;
+            $labels[] = (float) ($transaction->daily_sales ?? 0.0); // Explicit float conversion
         }
         
         // Create and train the model

@@ -1,280 +1,148 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        <!-- Date range selector -->
-        <div class="flex justify-end space-x-2">
-            <x-filament::button wire:click="updateDateRange(7)" size="sm" 
-                outlined="{{ $daysToAnalyze !== 7 }}">
+        <!-- Date Range Selector -->
+        <div class="flex justify-end space-x-2 mb-4">
+            <x-filament::button wire:click="updateDateRange(7)" color="{{ $daysToAnalyze == 7 ? 'primary' : 'secondary' }}">
                 Last 7 Days
             </x-filament::button>
-            <x-filament::button wire:click="updateDateRange(30)" size="sm"
-                outlined="{{ $daysToAnalyze !== 30 }}">
+            <x-filament::button wire:click="updateDateRange(30)" color="{{ $daysToAnalyze == 30 ? 'primary' : 'secondary' }}">
                 Last 30 Days
             </x-filament::button>
-            <x-filament::button wire:click="updateDateRange(90)" size="sm"
-                outlined="{{ $daysToAnalyze !== 90 }}">
+            <x-filament::button wire:click="updateDateRange(90)" color="{{ $daysToAnalyze == 90 ? 'primary' : 'secondary' }}">
                 Last 90 Days
             </x-filament::button>
         </div>
         
-        <!-- Sales and Spending trends -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Sales Trend Chart -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Sales Trend</h3>
-                <div x-data="{
-                    labels: {{ json_encode($salesTrend['labels']) }},
-                    values: {{ json_encode($salesTrend['data']) }},
-                }" x-init="
-                    const chart = new Chart(
-                        $refs.canvas,
-                        {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Daily Sales',
-                                        data: values,
-                                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                                        borderColor: 'rgba(59, 130, 246, 1)',
-                                        borderWidth: 2,
-                                        tension: 0.3,
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                }
-                            }
-                        }
-                    )
-                ">
-                    <canvas x-ref="canvas"></canvas>
+                <h3 class="text-lg font-medium mb-4">Sales Trend</h3>
+                <div class="h-64">
+                    <canvas id="salesTrendChart"></canvas>
                 </div>
             </div>
             
+            <!-- Spending Trend Chart -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Spending Trend</h3>
-                <div x-data="{
-                    labels: {{ json_encode($spendingTrend['labels']) }},
-                    values: {{ json_encode($spendingTrend['data']) }},
-                }" x-init="
-                    const chart = new Chart(
-                        $refs.canvas,
-                        {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Daily Spending',
-                                        data: values,
-                                        backgroundColor: 'rgba(220, 38, 38, 0.2)',
-                                        borderColor: 'rgba(220, 38, 38, 1)',
-                                        borderWidth: 2,
-                                        tension: 0.3,
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                }
-                            }
-                        }
-                    )
-                ">
-                    <canvas x-ref="canvas"></canvas>
+                <h3 class="text-lg font-medium mb-4">Spending Trend</h3>
+                <div class="h-64">
+                    <canvas id="spendingTrendChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Busiest Hours Chart -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium mb-4">Busiest Hours</h3>
+                <div class="h-64">
+                    <canvas id="busiestHoursChart"></canvas>
                 </div>
             </div>
         </div>
         
-        <!-- Busiest hours and register recommendations -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Busiest Hours</h3>
-                <div x-data="{
-                    labels: {{ json_encode($busiestHours['labels']) }},
-                    values: {{ json_encode($busiestHours['data']) }},
-                }" x-init="
-                    const chart = new Chart(
-                        $refs.canvas,
-                        {
-                            type: 'bar',
-                            data: {
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Transactions',
-                                        data: values,
-                                        backgroundColor: 'rgba(79, 70, 229, 0.6)',
-                                        borderWidth: 0,
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                }
-                            }
-                        }
-                    )
-                ">
-                    <canvas x-ref="canvas"></canvas>
+        <!-- Register Recommendations -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium mb-4">Register Recommendations</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="border rounded-lg p-4 text-center">
+                    <div class="text-3xl font-bold">{{ $registerRecommendations['total_registers'] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500">Total Registers</div>
+                </div>
+                <div class="border rounded-lg p-4 text-center">
+                    <div class="text-3xl font-bold">{{ $registerRecommendations['active_registers'] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500">Active Registers</div>
+                </div>
+                <div class="border rounded-lg p-4 text-center">
+                    <div class="text-3xl font-bold">{{ $registerRecommendations['recommended_registers'] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500">Recommended</div>
                 </div>
             </div>
-            
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Register Recommendations</h3>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-center">
-                            <p class="text-sm text-gray-600 dark:text-gray-200">Total Registers</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $registerRecommendations['total_registers'] }}</p>
-                        </div>
-                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-center">
-                            <p class="text-sm text-gray-600 dark:text-gray-200">Active Registers</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $registerRecommendations['active_registers'] }}</p>
-                        </div>
-                        <div class="bg-blue-100 dark:bg-blue-900 rounded-lg p-4 text-center">
-                            <p class="text-sm text-blue-600 dark:text-blue-200">Recommended</p>
-                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-100">{{ $registerRecommendations['recommended_registers'] }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 dark:border-yellow-600 p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-yellow-400 dark:text-yellow-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700 dark:text-yellow-200">
-                                    Based on your transaction data, we recommend having {{ $registerRecommendations['recommended_registers'] }} registers active during your busiest hour ({{ $registerRecommendations['busiest_hour'] }}).
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                Based on your transaction data, we recommend having {{ $registerRecommendations['recommended_registers'] ?? 0 }} registers active during your busiest hour ({{ $registerRecommendations['busiest_hour'] ?? 'N/A' }}).
+            </p>
         </div>
         
-        <!-- Sales prediction and inventory recommendations -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">AI-Powered Sales Prediction</h3>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900 dark:to-indigo-800 rounded-lg p-4">
-                            <p class="text-sm text-indigo-600 dark:text-indigo-200">Tomorrow</p>
-                            <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-300">${{ number_format($salesPrediction['prediction_for_tomorrow'], 2) }}</p>
-                        </div>
-                        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900 dark:to-indigo-800 rounded-lg p-4">
-                            <p class="text-sm text-indigo-600 dark:text-indigo-200">Next 7 Days</p>
-                            <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-300">${{ number_format($salesPrediction['prediction_next_week'], 2) }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center">
-                        <div class="flex-1 mr-4">
-                            <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
-                                <div class="h-2 bg-indigo-500 dark:bg-indigo-300 rounded-full" style="width: {{ str_replace('%', '', $salesPrediction['confidence']) }}%"></div>
-                            </div>
-                        </div>
-                        <span class="text-sm text-gray-600 dark:text-gray-300">{{ $salesPrediction['confidence'] }} confidence</span>
-                    </div>
-                    
-                    <div class="bg-indigo-50 dark:bg-indigo-900 border-l-4 border-indigo-400 dark:border-indigo-600 p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-indigo-400 dark:text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-indigo-700 dark:text-indigo-200">
-                                    These predictions are based on your historical sales data, seasonal trends, and current inventory levels.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+        <!-- AI-Powered Sales Prediction -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium mb-4">AI-Powered Sales Prediction</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="border rounded-lg p-4 text-center">
+                    <div class="text-sm text-gray-500 mb-1">Tomorrow</div>
+                    <div class="text-2xl font-bold">${{ number_format($salesPrediction['prediction_for_tomorrow'] ?? 0, 2) }}</div>
+                </div>
+                <div class="border rounded-lg p-4 text-center">
+                    <div class="text-sm text-gray-500 mb-1">Next 7 Days</div>
+                    <div class="text-2xl font-bold">${{ number_format($salesPrediction['prediction_next_week'] ?? 0, 2) }}</div>
                 </div>
             </div>
-            
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Inventory Recommendations</h3>
-                    <x-filament::button tag="a" href="{{ route('filament.admin.resources.products.index') }}" color="gray" size="sm">
-                        View All Products
-                    </x-filament::button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Product</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Stock</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Urgency</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($inventoryRecommendations as $item)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $item['name'] }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200">{{ $item['current_stock'] }} / {{ $item['min_stock'] }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @switch($item['restock_urgency'])
-                                            @case('critical')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                                                    Critical
-                                                </span>
-                                                @break
-                                            @case('high')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
-                                                    High
-                                                </span>
-                                                @break
-                                            @case('medium')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
-                                                    Medium
-                                                </span>
-                                                @break
-                                            @default
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                                    Low
-                                                </span>
-                                        @endswitch
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-center">
-                                        No inventory recommendations available
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <p class="mt-2 text-xs text-gray-500 text-center">{{ $salesPrediction['confidence'] ?? '0%' }} confidence</p>
+            <p class="mt-1 text-xs text-gray-500 text-center">These predictions are based on your historical sales data, seasonal trends, and current inventory levels.</p>
         </div>
         
-        <!-- Purchase Orders -->
+        <!-- Inventory Recommendations -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Pending Purchase Orders</h3>
-                <x-filament::button tag="a" href="{{ route('filament.admin.resources.purchase-orders.index') }}" color="gray" size="sm">
+                <h3 class="text-lg font-medium">Inventory Recommendations</h3>
+                <x-filament::button tag="a" href="{{ route('filament.admin.resources.products.index') }}" color="secondary" size="sm">
+                    View All Products
+                </x-filament::button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Stock</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Urgency</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        @forelse($inventoryRecommendations as $product)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $product['name'] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $product['current_stock'] }} / {{ $product['min_stock'] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @switch($product['restock_urgency'])
+                                        @case('critical')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+                                                Critical
+                                            </span>
+                                            @break
+                                        @case('high')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                                                High
+                                            </span>
+                                            @break
+                                        @case('medium')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                                                Medium
+                                            </span>
+                                            @break
+                                        @default
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                                Low
+                                            </span>
+                                    @endswitch
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-center">
+                                    No inventory recommendations available
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pending Purchase Orders -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">Pending Purchase Orders</h3>
+                <x-filament::button tag="a" href="{{ route('filament.admin.resources.purchase-orders.index') }}" color="secondary" size="sm">
                     View All POs
                 </x-filament::button>
             </div>
@@ -311,33 +179,27 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if(isset($po['urgency']))
-                                        @switch($po['urgency'])
-                                            @case('critical')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                                                    Critical
-                                                </span>
-                                                @break
-                                            @case('high')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
-                                                    High
-                                                </span>
-                                                @break
-                                            @case('medium')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
-                                                    Medium
-                                                </span>
-                                                @break
-                                            @default
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                                    Low
-                                                </span>
-                                        @endswitch
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-                                            Unknown
-                                        </span>
-                                    @endif
+                                    @switch($po['urgency'])
+                                        @case('critical')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+                                                Critical
+                                            </span>
+                                            @break
+                                        @case('high')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                                                High
+                                            </span>
+                                            @break
+                                        @case('medium')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                                                Medium
+                                            </span>
+                                            @break
+                                        @default
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                                Low
+                                            </span>
+                                    @endswitch
                                 </td>
                             </tr>
                         @empty
@@ -351,35 +213,126 @@
                 </table>
             </div>
         </div>
-
-        <!-- Top Suppliers -->
-        @if(isset($topSuppliers))
-            <div class="mt-6">
-                <h3 class="text-lg font-medium">Top Suppliers</h3>
-                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    @forelse($topSuppliers as $supplierData)
-                        <div class="bg-white overflow-hidden shadow rounded-lg">
-                            <div class="px-4 py-5 sm:p-6">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        {{ $supplierData['name'] ?? (array_key_exists('supplier', $supplierData) ? $supplierData['supplier'] : 'Unknown Supplier') }}
-                                    </dt>
-                                    <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                                        {{ isset($supplierData['total']) ? '$' . number_format($supplierData['total'], 2) : '$0.00' }}
-                                    </dd>
-                                    <dd class="mt-1 text-sm text-gray-500">
-                                        {{ isset($supplierData['count']) ? $supplierData['count'] . ' orders' : '0 orders' }}
-                                    </dd>
-                                </dl>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-span-full">
-                            <p class="text-gray-500 text-sm">No supplier data available</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        @endif
     </div>
+    
+    <!-- Properly load Chart.js in a way that doesn't conflict with Filament -->
+    <script>
+        // Check if Chart.js is already loaded via Filament assets
+        if (typeof Chart === 'undefined') {
+            // Only load Chart.js if not already loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js';
+                script.onload = initCharts;
+                document.head.appendChild(script);
+            });
+        } else {
+            // Chart.js is already loaded, just init charts
+            document.addEventListener('DOMContentLoaded', initCharts);
+        }
+        
+        function initCharts() {
+            // Sales Trend Chart
+            const salesTrendCtx = document.getElementById('salesTrendChart');
+            if (salesTrendCtx) {
+                const salesTrendData = @json($salesTrend);
+                if (salesTrendData && salesTrendData.labels && salesTrendData.data) {
+                    new Chart(salesTrendCtx, {
+                        type: 'line',
+                        data: {
+                            labels: salesTrendData.labels,
+                            datasets: [{
+                                label: 'Sales',
+                                data: salesTrendData.data,
+                                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                borderWidth: 2,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Spending Trend Chart
+            const spendingTrendCtx = document.getElementById('spendingTrendChart');
+            if (spendingTrendCtx) {
+                const spendingTrendData = @json($spendingTrend);
+                if (spendingTrendData && spendingTrendData.labels && spendingTrendData.data) {
+                    new Chart(spendingTrendCtx, {
+                        type: 'line',
+                        data: {
+                            labels: spendingTrendData.labels,
+                            datasets: [{
+                                label: 'Spending',
+                                data: spendingTrendData.data,
+                                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                borderColor: 'rgba(239, 68, 68, 1)',
+                                borderWidth: 2,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Busiest Hours Chart
+            const busiestHoursCtx = document.getElementById('busiestHoursChart');
+            if (busiestHoursCtx) {
+                const busiestHoursData = @json($busiestHours);
+                if (busiestHoursData && busiestHoursData.labels && busiestHoursData.data) {
+                    new Chart(busiestHoursCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: busiestHoursData.labels,
+                            datasets: [{
+                                label: 'Transactions',
+                                data: busiestHoursData.data,
+                                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                borderColor: 'rgba(16, 185, 129, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    </script>
 </x-filament-panels::page>

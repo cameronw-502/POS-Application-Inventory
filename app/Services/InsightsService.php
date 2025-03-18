@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseOrder;
-use App\Models\Sale;
+use App\Models\Transaction; // Change from Sale to Transaction
 use App\Models\Register;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
@@ -35,9 +35,10 @@ class InsightsService
         ];
     }
     
+    // Update this method to use Transaction instead of Sale
     public function getSalesTrend(int $days = 30): array
     {
-        $data = Trend::query(Sale::query())
+        $data = Trend::query(Transaction::query()->where('status', 'completed'))
             ->between(
                 start: now()->subDays($days),
                 end: now(),
@@ -51,17 +52,19 @@ class InsightsService
         ];
     }
     
+    // Update this method too
     public function getBusiestHours(): array
     {
-        // Get sales grouped by hour
-        $sales = Sale::selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+        // Get transactions grouped by hour
+        $transactions = Transaction::selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+            ->where('status', 'completed')
             ->groupBy('hour')
             ->orderBy('hour')
             ->get();
             
         return [
-            'labels' => $sales->pluck('hour')->map(fn ($hour) => sprintf('%02d:00', $hour)),
-            'data' => $sales->pluck('count'),
+            'labels' => $transactions->pluck('hour')->map(fn ($hour) => sprintf('%02d:00', $hour)),
+            'data' => $transactions->pluck('count'),
         ];
     }
     
@@ -134,7 +137,8 @@ class InsightsService
         
         try {
             // Get historical sales data for the past 90 days
-            $historicalSales = Sale::selectRaw('DATE(created_at) as date, SUM(total_amount) as daily_sales')
+            $historicalSales = Transaction::selectRaw('DATE(created_at) as date, SUM(total_amount) as daily_sales')
+                ->where('status', 'completed')
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get()
