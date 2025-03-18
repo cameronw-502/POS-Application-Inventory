@@ -14,9 +14,18 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             RoleAndPermissionSeeder::class,
+            UserSeeder::class, // Add our new UserSeeder here
+            CustomerSeeder::class, // Add our new CustomerSeeder here
             CategorySeeder::class,
             SupplierSeeder::class,
             ProductSeeder::class,
+            RegisterSeeder::class,
+            // First generate purchase orders
+            PurchaseOrderSeeder::class,
+            // Then generate receiving reports for those orders
+            ReceivingReportSeeder::class,
+            // Generate sales and transactions after products are in stock
+            SalesSeeder::class,
         ]);
     }
 }

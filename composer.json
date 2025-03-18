@@ -21,6 +21,7 @@
         "livewire/volt": "^1.6.7",
         "maatwebsite/excel": "^3.1",
         "picqer/php-barcode-generator": "^3.2",
+        "rubix/ml": "^2.5",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-medialibrary": "^11.12",
         "spatie/laravel-permission": "^6.16",
