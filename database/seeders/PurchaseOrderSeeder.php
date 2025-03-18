@@ -22,8 +22,16 @@ class PurchaseOrderSeeder extends Seeder
         }
 
         // Find the highest existing PO number to avoid duplicates
-        $latestPo = PurchaseOrder::orderByRaw('CAST(SUBSTRING(po_number, 4) AS UNSIGNED) DESC')
-            ->first();
+        $latestPo = null;
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            // PostgreSQL version
+            $latestPo = PurchaseOrder::orderByRaw('SUBSTRING(po_number FROM 4)::INTEGER DESC')
+                ->first();
+        } else {
+            // MySQL version
+            $latestPo = PurchaseOrder::orderByRaw('CAST(SUBSTRING(po_number, 4) AS UNSIGNED) DESC')
+                ->first();
+        }
             
         $poCount = 0;
         
