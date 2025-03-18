@@ -293,37 +293,51 @@
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($pendingPOs as $po)
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">PO-{{ $po['id'] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $po['supplier'] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${{ number_format($po['amount'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">PO-{{ $po['id'] ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                    {{ \Carbon\Carbon::parse($po['due_date'])->format('M d, Y') }}
-                                    <span class="text-xs text-gray-400 dark:text-gray-500">
-                                        ({{ $po['days_until_due'] > 0 ? 'in ' . $po['days_until_due'] . ' days' : abs($po['days_until_due']) . ' days ago' }})
-                                    </span>
+                                    {{ isset($po['supplier']) ? $po['supplier'] : 'Unknown Supplier' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    ${{ isset($po['amount']) ? number_format($po['amount'], 2) : '0.00' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    @if(isset($po['due_date']))
+                                        {{ \Carbon\Carbon::parse($po['due_date'])->format('M d, Y') }}
+                                        <span class="text-xs text-gray-400 dark:text-gray-500">
+                                            ({{ isset($po['days_until_due']) ? ($po['days_until_due'] > 0 ? 'in ' . $po['days_until_due'] . ' days' : abs($po['days_until_due']) . ' days ago') : 'N/A' }})
+                                        </span>
+                                    @else
+                                        N/A
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @switch($po['urgency'])
-                                        @case('critical')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                                                Critical
-                                            </span>
-                                            @break
-                                        @case('high')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
-                                                High
-                                            </span>
-                                            @break
-                                        @case('medium')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
-                                                Medium
-                                            </span>
-                                            @break
-                                        @default
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                                Low
-                                            </span>
-                                    @endswitch
+                                    @if(isset($po['urgency']))
+                                        @switch($po['urgency'])
+                                            @case('critical')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+                                                    Critical
+                                                </span>
+                                                @break
+                                            @case('high')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                                                    High
+                                                </span>
+                                                @break
+                                            @case('medium')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                                                    Medium
+                                                </span>
+                                                @break
+                                            @default
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                                    Low
+                                                </span>
+                                        @endswitch
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+                                            Unknown
+                                        </span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -337,5 +351,35 @@
                 </table>
             </div>
         </div>
+
+        <!-- Top Suppliers -->
+        @if(isset($topSuppliers))
+            <div class="mt-6">
+                <h3 class="text-lg font-medium">Top Suppliers</h3>
+                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @forelse($topSuppliers as $supplierData)
+                        <div class="bg-white overflow-hidden shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        {{ $supplierData['name'] ?? (array_key_exists('supplier', $supplierData) ? $supplierData['supplier'] : 'Unknown Supplier') }}
+                                    </dt>
+                                    <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                                        {{ isset($supplierData['total']) ? '$' . number_format($supplierData['total'], 2) : '$0.00' }}
+                                    </dd>
+                                    <dd class="mt-1 text-sm text-gray-500">
+                                        {{ isset($supplierData['count']) ? $supplierData['count'] . ' orders' : '0 orders' }}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full">
+                            <p class="text-gray-500 text-sm">No supplier data available</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        @endif
     </div>
 </x-filament-panels::page>
